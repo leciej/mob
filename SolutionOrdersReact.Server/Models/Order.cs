@@ -13,5 +13,6 @@
         public virtual Client? Client { get; set; }
         public virtual Worker? Worker { get; set; }
         public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+
     }
 }

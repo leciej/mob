@@ -1,13 +1,13 @@
-﻿namespace SolutionOrdersReact.Server.Models
+using MediatR;
+
+namespace SolutionOrdersReact.Server.Requests.Categories.Commands
 {
-    public class Category
+    public class UpdateCategoryCommand : IRequest<Unit>
     {
         public int IdCategory { get; set; }
         public string? Name { get; set; }
         public string? Description { get; set; }
         public bool IsActive { get; set; }
-
-        // Navigation property
-        public virtual ICollection<Item> Items { get; set; } = new List<Item>();
     }
 }
+

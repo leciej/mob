@@ -1,15 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using SolutionOrdersReact.Server.Models;
 
-namespace SolutionOrdersReact.Server.Data
+namespace SolutionOrdersReact.Server.Models
 {
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : DbContext(options)
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-            : base(options)
-        {
-        }
-
         public DbSet<UnitOfMeasurement> UnitOfMeasurements { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<Client> Clients { get; set; }
@@ -26,6 +20,8 @@ namespace SolutionOrdersReact.Server.Data
             modelBuilder.Entity<UnitOfMeasurement>(entity =>
             {
                 entity.HasKey(e => e.IdUnitOfMeasurement);
+                entity.Property(e => e.Name).HasMaxLength(50);
+                entity.Property(e => e.Description).HasMaxLength(200);
                 entity.Property(e => e.IsActive).IsRequired();
             });
 
@@ -33,6 +29,8 @@ namespace SolutionOrdersReact.Server.Data
             modelBuilder.Entity<Category>(entity =>
             {
                 entity.HasKey(e => e.IdCategory);
+                entity.Property(e => e.Name).HasMaxLength(100);
+                entity.Property(e => e.Description).HasMaxLength(500);
                 entity.Property(e => e.IsActive).IsRequired();
             });
 
@@ -40,6 +38,9 @@ namespace SolutionOrdersReact.Server.Data
             modelBuilder.Entity<Client>(entity =>
             {
                 entity.HasKey(e => e.IdClient);
+                entity.Property(e => e.Name).HasMaxLength(200);
+                entity.Property(e => e.Adress).HasMaxLength(300);
+                entity.Property(e => e.PhoneNumber).HasMaxLength(20);
                 entity.Property(e => e.IsActive).IsRequired();
             });
 
@@ -47,7 +48,10 @@ namespace SolutionOrdersReact.Server.Data
             modelBuilder.Entity<Worker>(entity =>
             {
                 entity.HasKey(e => e.IdWorker);
-                entity.Property(e => e.Login).IsRequired();
+                entity.Property(e => e.FirstName).HasMaxLength(100);
+                entity.Property(e => e.LastName).HasMaxLength(100);
+                entity.Property(e => e.Login).IsRequired().HasMaxLength(50);
+                entity.Property(e => e.Password).HasMaxLength(255);
                 entity.Property(e => e.IsActive).IsRequired();
             });
 
@@ -55,9 +59,13 @@ namespace SolutionOrdersReact.Server.Data
             modelBuilder.Entity<Item>(entity =>
             {
                 entity.HasKey(e => e.IdItem);
+                entity.Property(e => e.Name).HasMaxLength(200);
+                entity.Property(e => e.Description).HasMaxLength(1000);
                 entity.Property(e => e.IdCategory).IsRequired();
-                entity.Property(e => e.Price).HasColumnType("decimal(18, 0)");
-                entity.Property(e => e.Quantity).HasColumnType("decimal(18, 0)");
+                entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
+                entity.Property(e => e.Quantity).HasColumnType("decimal(18, 2)");
+                entity.Property(e => e.FotoUrl).HasMaxLength(500);
+                entity.Property(e => e.Code).HasMaxLength(50);
                 entity.Property(e => e.IsActive).IsRequired();
 
                 entity.HasOne(e => e.Category)
@@ -75,6 +83,9 @@ namespace SolutionOrdersReact.Server.Data
             modelBuilder.Entity<Order>(entity =>
             {
                 entity.HasKey(e => e.IdOrder);
+                entity.Property(e => e.DataOrder).HasColumnType("datetime");
+                entity.Property(e => e.DeliveryDate).HasColumnType("datetime");
+                entity.Property(e => e.Notes).HasMaxLength(1000);
 
                 entity.HasOne(e => e.Client)
                     .WithMany(c => c.Orders)
@@ -93,7 +104,7 @@ namespace SolutionOrdersReact.Server.Data
                 entity.HasKey(e => e.IdOrderItem);
                 entity.Property(e => e.IdOrder).IsRequired();
                 entity.Property(e => e.IdItem).IsRequired();
-                entity.Property(e => e.Quantity).HasColumnType("decimal(18, 0)");
+                entity.Property(e => e.Quantity).HasColumnType("decimal(18, 2)");
                 entity.Property(e => e.IsActive).IsRequired();
 
                 entity.HasOne(e => e.Order)

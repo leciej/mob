@@ -2,7 +2,8 @@
 
 namespace SolutionOrdersReact.Server.Models
 {
-    public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : DbContext(options)
+    public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+        : DbContext(options)
     {
         public DbSet<UnitOfMeasurement> UnitOfMeasurements { get; set; }
         public DbSet<Category> Categories { get; set; }
@@ -12,12 +13,12 @@ namespace SolutionOrdersReact.Server.Models
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
         public DbSet<Product> Products { get; set; }
+        public DbSet<GalleryItem> GalleryItems { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // UnitOfMeasurement
             modelBuilder.Entity<UnitOfMeasurement>(entity =>
             {
                 entity.HasKey(e => e.IdUnitOfMeasurement);
@@ -26,7 +27,6 @@ namespace SolutionOrdersReact.Server.Models
                 entity.Property(e => e.IsActive).IsRequired();
             });
 
-            // Category
             modelBuilder.Entity<Category>(entity =>
             {
                 entity.HasKey(e => e.IdCategory);
@@ -35,7 +35,6 @@ namespace SolutionOrdersReact.Server.Models
                 entity.Property(e => e.IsActive).IsRequired();
             });
 
-            // Client
             modelBuilder.Entity<Client>(entity =>
             {
                 entity.HasKey(e => e.IdClient);
@@ -45,7 +44,6 @@ namespace SolutionOrdersReact.Server.Models
                 entity.Property(e => e.IsActive).IsRequired();
             });
 
-            // Worker
             modelBuilder.Entity<Worker>(entity =>
             {
                 entity.HasKey(e => e.IdWorker);
@@ -56,15 +54,14 @@ namespace SolutionOrdersReact.Server.Models
                 entity.Property(e => e.IsActive).IsRequired();
             });
 
-            // Item
             modelBuilder.Entity<Item>(entity =>
             {
                 entity.HasKey(e => e.IdItem);
                 entity.Property(e => e.Name).HasMaxLength(200);
                 entity.Property(e => e.Description).HasMaxLength(1000);
                 entity.Property(e => e.IdCategory).IsRequired();
-                entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
-                entity.Property(e => e.Quantity).HasColumnType("decimal(18, 2)");
+                entity.Property(e => e.Price).HasColumnType("decimal(18,2)");
+                entity.Property(e => e.Quantity).HasColumnType("decimal(18,2)");
                 entity.Property(e => e.FotoUrl).HasMaxLength(500);
                 entity.Property(e => e.Code).HasMaxLength(50);
                 entity.Property(e => e.IsActive).IsRequired();
@@ -80,7 +77,6 @@ namespace SolutionOrdersReact.Server.Models
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
-            // Order
             modelBuilder.Entity<Order>(entity =>
             {
                 entity.HasKey(e => e.IdOrder);
@@ -99,13 +95,12 @@ namespace SolutionOrdersReact.Server.Models
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
-            // OrderItem
             modelBuilder.Entity<OrderItem>(entity =>
             {
                 entity.HasKey(e => e.IdOrderItem);
                 entity.Property(e => e.IdOrder).IsRequired();
                 entity.Property(e => e.IdItem).IsRequired();
-                entity.Property(e => e.Quantity).HasColumnType("decimal(18, 2)");
+                entity.Property(e => e.Quantity).HasColumnType("decimal(18,2)");
                 entity.Property(e => e.IsActive).IsRequired();
 
                 entity.HasOne(e => e.Order)
@@ -119,38 +114,44 @@ namespace SolutionOrdersReact.Server.Models
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
-            // Seed data - przykładowe dane
+            modelBuilder.Entity<GalleryItem>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Title).IsRequired().HasMaxLength(200);
+                entity.Property(e => e.Artist).IsRequired().HasMaxLength(200);
+                entity.Property(e => e.ImageUrl).IsRequired().HasMaxLength(500);
+                entity.Property(e => e.Price).HasColumnType("decimal(18,2)");
+                entity.Property(e => e.CreatedAt).IsRequired();
+            });
+
             SeedData(modelBuilder);
         }
 
         private void SeedData(ModelBuilder modelBuilder)
         {
-            // UnitOfMeasurement
+            // ⛔ brak seedów dla GalleryItems – dane TYLKO z bazy
+
             modelBuilder.Entity<UnitOfMeasurement>().HasData(
                 new UnitOfMeasurement { IdUnitOfMeasurement = 1, Name = "szt", Description = "Sztuki", IsActive = true },
                 new UnitOfMeasurement { IdUnitOfMeasurement = 2, Name = "kg", Description = "Kilogramy", IsActive = true },
                 new UnitOfMeasurement { IdUnitOfMeasurement = 3, Name = "l", Description = "Litry", IsActive = true }
             );
 
-            // Category
             modelBuilder.Entity<Category>().HasData(
                 new Category { IdCategory = 1, Name = "Elektronika", Description = "Urządzenia elektroniczne", IsActive = true },
                 new Category { IdCategory = 2, Name = "Żywność", Description = "Produkty spożywcze", IsActive = true }
             );
 
-            // Client
             modelBuilder.Entity<Client>().HasData(
                 new Client { IdClient = 1, Name = "Jan Kowalski", Adress = "ul. Główna 1, Warszawa", PhoneNumber = "500-100-200", IsActive = true },
                 new Client { IdClient = 2, Name = "Anna Nowak", Adress = "ul. Kwiatowa 5, Kraków", PhoneNumber = "600-200-300", IsActive = true }
             );
 
-            // Worker
             modelBuilder.Entity<Worker>().HasData(
                 new Worker { IdWorker = 1, FirstName = "Piotr", LastName = "Kowalczyk", Login = "pkowalczyk", Password = "haslo123", IsActive = true },
                 new Worker { IdWorker = 2, FirstName = "Maria", LastName = "Wiśniewska", Login = "mwisnieska", Password = "haslo456", IsActive = true }
             );
 
-            // Item
             modelBuilder.Entity<Item>().HasData(
                 new Item { IdItem = 1, Name = "Laptop Dell", Description = "Laptop Dell Inspiron 15", IdCategory = 1, Price = 3500, Quantity = 10, IdUnitOfMeasurement = 1, Code = "LAP001", IsActive = true },
                 new Item { IdItem = 2, Name = "Monitor Samsung", Description = "Monitor 24 cale", IdCategory = 1, Price = 800, Quantity = 15, IdUnitOfMeasurement = 1, Code = "MON001", IsActive = true }

@@ -1,18 +1,15 @@
-﻿namespace SolutionOrdersReact.Server.Models
+﻿using System;
+using System.Collections.Generic;
+
+namespace SolutionOrdersReact.Server.Models;
+
+public class Order
 {
-    public class Order
-    {
-        public int IdOrder { get; set; }
-        public DateTime? DataOrder { get; set; }
-        public int? IdClient { get; set; }
-        public int? IdWorker { get; set; }
-        public string? Notes { get; set; }
-        public DateTime? DeliveryDate { get; set; }
+    public Guid Id { get; set; }
+    public Guid? ClientId { get; set; }
 
-        // Navigation properties
-        public virtual Client? Client { get; set; }
-        public virtual Worker? Worker { get; set; }
-        public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+    public decimal TotalAmount { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-    }
+    public List<OrderItem> Items { get; set; } = new();
 }

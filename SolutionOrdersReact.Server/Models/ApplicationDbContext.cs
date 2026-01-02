@@ -10,8 +10,10 @@ namespace SolutionOrdersReact.Server.Models
         public DbSet<Client> Clients { get; set; }
         public DbSet<Worker> Workers { get; set; }
         public DbSet<Item> Items { get; set; }
+
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
+
         public DbSet<Product> Products { get; set; }
         public DbSet<GalleryItem> GalleryItems { get; set; }
 
@@ -59,7 +61,6 @@ namespace SolutionOrdersReact.Server.Models
                 entity.HasKey(e => e.IdItem);
                 entity.Property(e => e.Name).HasMaxLength(200);
                 entity.Property(e => e.Description).HasMaxLength(1000);
-                entity.Property(e => e.IdCategory).IsRequired();
                 entity.Property(e => e.Price).HasColumnType("decimal(18,2)");
                 entity.Property(e => e.Quantity).HasColumnType("decimal(18,2)");
                 entity.Property(e => e.FotoUrl).HasMaxLength(500);
@@ -77,41 +78,44 @@ namespace SolutionOrdersReact.Server.Models
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
+            // ✅ NOWE ZAMÓWIENIA (MINIMALNE)
+
             modelBuilder.Entity<Order>(entity =>
             {
-                entity.HasKey(e => e.IdOrder);
-                entity.Property(e => e.DataOrder).HasColumnType("datetime");
-                entity.Property(e => e.DeliveryDate).HasColumnType("datetime");
-                entity.Property(e => e.Notes).HasMaxLength(1000);
+                entity.HasKey(e => e.Id);
 
-                entity.HasOne(e => e.Client)
-                    .WithMany(c => c.Orders)
-                    .HasForeignKey(e => e.IdClient)
-                    .OnDelete(DeleteBehavior.Restrict);
+                entity.Property(e => e.TotalAmount)
+                    .HasColumnType("decimal(18,2)");
 
-                entity.HasOne(e => e.Worker)
-                    .WithMany(w => w.Orders)
-                    .HasForeignKey(e => e.IdWorker)
-                    .OnDelete(DeleteBehavior.Restrict);
+                entity.Property(e => e.CreatedAt)
+                    .IsRequired();
+
+                entity.HasMany(e => e.Items)
+                    .WithOne(i => i.Order)
+                    .HasForeignKey(i => i.OrderId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<OrderItem>(entity =>
             {
-                entity.HasKey(e => e.IdOrderItem);
-                entity.Property(e => e.IdOrder).IsRequired();
-                entity.Property(e => e.IdItem).IsRequired();
-                entity.Property(e => e.Quantity).HasColumnType("decimal(18,2)");
-                entity.Property(e => e.IsActive).IsRequired();
+                entity.HasKey(e => e.Id);
 
-                entity.HasOne(e => e.Order)
-                    .WithMany(o => o.OrderItems)
-                    .HasForeignKey(e => e.IdOrder)
-                    .OnDelete(DeleteBehavior.Cascade);
+                entity.Property(e => e.Source)
+                    .IsRequired()
+                    .HasMaxLength(20);
 
-                entity.HasOne(e => e.Item)
-                    .WithMany(i => i.OrderItems)
-                    .HasForeignKey(e => e.IdItem)
-                    .OnDelete(DeleteBehavior.Restrict);
+                entity.Property(e => e.Name)
+                    .IsRequired()
+                    .HasMaxLength(300);
+
+                entity.Property(e => e.Price)
+                    .HasColumnType("decimal(18,2)");
+
+                entity.Property(e => e.Quantity)
+                    .IsRequired();
+
+                entity.Property(e => e.ImageUrl)
+                    .HasMaxLength(500);
             });
 
             modelBuilder.Entity<GalleryItem>(entity =>
@@ -129,8 +133,6 @@ namespace SolutionOrdersReact.Server.Models
 
         private void SeedData(ModelBuilder modelBuilder)
         {
-            // ⛔ brak seedów dla GalleryItems – dane TYLKO z bazy
-
             modelBuilder.Entity<UnitOfMeasurement>().HasData(
                 new UnitOfMeasurement { IdUnitOfMeasurement = 1, Name = "szt", Description = "Sztuki", IsActive = true },
                 new UnitOfMeasurement { IdUnitOfMeasurement = 2, Name = "kg", Description = "Kilogramy", IsActive = true },

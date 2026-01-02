@@ -1,32 +1,22 @@
 ﻿using Mapster;
-using SolutionOrdersReact.Server.Dto;
+using SolutionOrdersReact.Dto;
 using SolutionOrdersReact.Server.Models;
 
-namespace SolutionOrdersReact.Server.Mappings
-{
-    public class OrderMappingConfig
-    {
-        public static void Configure()
-        {
-            // Mapowanie z Order do OrderDto
-            TypeAdapterConfig<Order, OrderDto>
-                .NewConfig()
-                .Map(dest => dest.IdOrder, src => src.IdOrder)
-                .Map(dest => dest.DataOrder, src => src.DataOrder)
-                .Map(dest => dest.ClientName, src => src.Client != null ? src.Client.Name : null)
-                .Map(dest => dest.WorkerName,
-                    src => src.Worker != null ? $"{src.Worker.FirstName} {src.Worker.LastName}" : null)
-                .Map(dest => dest.Notes, src => src.Notes)
-                .Map(dest => dest.DeliveryDate, src => src.DeliveryDate)
-                .Map(dest => dest.Items, src => src.OrderItems.Select(oi => new OrderItemDto
-                {
-                    IdOrderItem = oi.IdOrderItem,
-                    ItemName = oi.Item.Name,
-                    Quantity = oi.Quantity,
-                    Price = oi.Item.Price
-                }).ToList());
+namespace SolutionOrdersReact.Mappings;
 
-            // TODO: Implement mapping from CreateOrderCommand to Order when CreateOrderCommand is introduced.
-        }
+public class OrderMappingConfig : IRegister
+{
+    public void Register(TypeAdapterConfig config)
+    {
+        config.NewConfig<OrderItemDto, OrderItem>()
+            .Map(dest => dest.Source, src => src.Source)
+            .Map(dest => dest.SourceItemId, src => src.SourceItemId)
+            .Map(dest => dest.Name, src => src.Name)
+            .Map(dest => dest.Price, src => src.Price)
+            .Map(dest => dest.Quantity, src => src.Quantity)
+            .Map(dest => dest.ImageUrl, src => src.ImageUrl);
+
+        config.NewConfig<Order, OrderDto>()
+            .Map(dest => dest.Items, src => src.Items);
     }
 }

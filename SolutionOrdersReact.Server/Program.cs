@@ -1,83 +1,80 @@
 using Microsoft.EntityFrameworkCore;
-using SolutionOrdersReact.Server.Mappings;
 using SolutionOrdersReact.Server.Models;
+using Mapster;
+using MediatR;
 using System.Reflection;
 
-namespace SolutionOrdersReact.Server
+namespace SolutionOrdersReact.Server;
+
+public class Program
 {
-    public class Program
+    public static void Main(string[] args)
     {
-        public static void Main(string[] args)
+        var builder = WebApplication.CreateBuilder(args);
+
+        // Controllers
+        builder.Services.AddControllers();
+
+        // DbContext
+        builder.Services.AddDbContext<ApplicationDbContext>(options =>
+            options.UseSqlServer(
+                builder.Configuration.GetConnectionString("DefaultConnection")
+            )
+        );
+
+        // Mapster – automatyczne ładowanie konfiguracji IRegister
+        TypeAdapterConfig.GlobalSettings.Scan(Assembly.GetExecutingAssembly());
+
+        // MediatR
+        builder.Services.AddMediatR(cfg =>
+            cfg.RegisterServicesFromAssemblyContaining<Program>()
+        );
+
+        // CORS
+        builder.Services.AddCors(options =>
         {
-            var builder = WebApplication.CreateBuilder(args);
-
-            builder.Services.AddControllers();
-
-            builder.Services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(
-                    builder.Configuration.GetConnectionString("DefaultConnection")
-                )
+            options.AddPolicy(
+                "AllowAll",
+                policy => policy
+                    .AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
             );
+        });
 
-            ItemMappingConfig.Configure();
-            OrderMappingConfig.Configure();
-            CategoryMappingConfig.Configure();
-            UnitOfMeasurementMappingConfig.Configure();
+        // Swagger
+        builder.Services.AddEndpointsApiExplorer();
+        builder.Services.AddSwaggerGen();
 
-            builder.Services.AddMediatR(cfg =>
-                cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly())
-            );
+        var app = builder.Build();
 
-            builder.Services.AddCors(options =>
+        // Migracje
+        using (var scope = app.Services.CreateScope())
+        {
+            try
             {
-                options.AddPolicy(
-                    "AllowAll",
-                    policy => policy
-                        .AllowAnyOrigin()
-                        .AllowAnyMethod()
-                        .AllowAnyHeader()
-                );
-            });
-
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
-
-            var app = builder.Build();
-
-            using (var scope = app.Services.CreateScope())
-            {
-                try
-                {
-                    var dbContext =
-                        scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                    dbContext.Database.Migrate();
-                }
-                catch (Exception ex)
-                {
-                    var logger =
-                        scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-                    logger.LogError(
-                        ex,
-                        "Błąd podczas migracji bazy danych"
-                    );
-                }
+                var dbContext =
+                    scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                dbContext.Database.Migrate();
             }
-
-            app.UseDefaultFiles();
-            app.UseStaticFiles();
-
-            if (app.Environment.IsDevelopment())
+            catch (Exception ex)
             {
-                app.UseSwagger();
-                app.UseSwaggerUI();
+                var logger =
+                    scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+                logger.LogError(ex, "Błąd podczas migracji bazy danych");
             }
-
-            app.UseCors("AllowAll");
-            app.UseAuthorization();
-            app.MapControllers();
-            app.MapFallbackToFile("/index.html");
-
-            app.Run();
         }
+
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseSwagger();
+            app.UseSwaggerUI();
+        }
+
+        app.UseCors("AllowAll");
+        app.UseAuthorization();
+
+        app.MapControllers();
+        app.Run();
     }
 }

@@ -1,10 +1,9 @@
 ﻿using MediatR;
-using SolutionOrdersReact.Server.Dto;
+using SolutionOrdersReact.Dto;
+using System.Collections.Generic;
 
-namespace SolutionOrdersReact.Server.Requests.Orders.Queries
+namespace SolutionOrdersReact.Server.Requests.Orders.Queries;
+
+public class GetAllOrdersQuery : IRequest<List<OrderDto>>
 {
-    public class GetAllOrdersQuery : IRequest<List<OrderDto>>
-    {
-    
-    }
 }

@@ -1,25 +1,31 @@
 ﻿using Mapster;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using SolutionOrdersReact.Server.Dto;
+using SolutionOrdersReact.Dto;
 using SolutionOrdersReact.Server.Models;
 using SolutionOrdersReact.Server.Requests.Orders.Queries;
 
-namespace SolutionOrdersReact.Server.Handlers.Orders
-{
-    public class GetAllOrdersHandler(ApplicationDbContext context) : IRequestHandler<GetAllOrdersQuery, List<OrderDto>>
-    {
-        public async Task<List<OrderDto>> Handle(GetAllOrdersQuery request, CancellationToken cancellationToken)
-        {
-            var orderEntities = await context.Orders
-                .Include(o => o.Client)
-                .Include(o => o.Worker)
-                .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.Item)
-                .ToListAsync(cancellationToken);
+namespace SolutionOrdersReact.Server.Handlers.Orders;
 
-            var orders = orderEntities.Adapt<List<OrderDto>>();
-            return orders;
-        }
+public class GetAllOrdersHandler
+    : IRequestHandler<GetAllOrdersQuery, List<OrderDto>>
+{
+    private readonly ApplicationDbContext _context;
+
+    public GetAllOrdersHandler(ApplicationDbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task<List<OrderDto>> Handle(
+        GetAllOrdersQuery request,
+        CancellationToken cancellationToken)
+    {
+        var orders = await _context.Orders
+            .Include(o => o.Items)
+            .OrderByDescending(o => o.CreatedAt)
+            .ToListAsync(cancellationToken);
+
+        return orders.Adapt<List<OrderDto>>();
     }
 }

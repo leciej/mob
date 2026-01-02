@@ -1,15 +1,20 @@
-﻿namespace SolutionOrdersReact.Server.Models
-{
-    public class OrderItem
-    {
-        public int IdOrderItem { get; set; }
-        public int IdOrder { get; set; }
-        public int IdItem { get; set; }
-        public decimal? Quantity { get; set; }
-        public bool IsActive { get; set; }
+﻿using System;
 
-        // Navigation properties
-        public virtual Order Order { get; set; } = null!;
-        public virtual Item Item { get; set; } = null!;
-    }
+namespace SolutionOrdersReact.Server.Models;
+
+public class OrderItem
+{
+    public Guid Id { get; set; }
+
+    public Guid OrderId { get; set; }
+    public Order Order { get; set; } = null!;
+
+    public string Source { get; set; } = null!;
+    public Guid SourceItemId { get; set; }
+
+    public string Name { get; set; } = null!;
+    public decimal Price { get; set; }
+    public int Quantity { get; set; }
+
+    public string? ImageUrl { get; set; }
 }

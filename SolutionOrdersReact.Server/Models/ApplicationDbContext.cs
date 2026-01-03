@@ -16,6 +16,8 @@ namespace SolutionOrdersReact.Server.Models
 
         public DbSet<Product> Products { get; set; }
         public DbSet<GalleryItem> GalleryItems { get; set; }
+        public DbSet<Comment> Comments { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -127,6 +129,34 @@ namespace SolutionOrdersReact.Server.Models
                 entity.Property(e => e.Price).HasColumnType("decimal(18,2)");
                 entity.Property(e => e.CreatedAt).IsRequired();
             });
+            modelBuilder.Entity<Comment>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.AuthorName)
+                    .IsRequired()
+                    .HasMaxLength(200);
+
+                entity.Property(e => e.Text)
+                    .IsRequired();
+
+                entity.Property(e => e.CreatedAt)
+                    .IsRequired()
+                    .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                entity.HasIndex(e => new { e.ProductId, e.CreatedAt });
+
+                entity.HasOne<Product>()
+                    .WithMany()
+                    .HasForeignKey(e => e.ProductId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne<Client>()
+                    .WithMany()
+                    .HasForeignKey(e => e.ClientId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
 
             SeedData(modelBuilder);
         }

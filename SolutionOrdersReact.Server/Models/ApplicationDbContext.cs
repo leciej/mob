@@ -17,7 +17,7 @@ namespace SolutionOrdersReact.Server.Models
         public DbSet<Product> Products { get; set; }
         public DbSet<GalleryItem> GalleryItems { get; set; }
         public DbSet<Comment> Comments { get; set; }
-
+        public DbSet<GalleryRating> GalleryRatings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -80,8 +80,6 @@ namespace SolutionOrdersReact.Server.Models
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
-            // ✅ NOWE ZAMÓWIENIA (MINIMALNE)
-
             modelBuilder.Entity<Order>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -129,6 +127,7 @@ namespace SolutionOrdersReact.Server.Models
                 entity.Property(e => e.Price).HasColumnType("decimal(18,2)");
                 entity.Property(e => e.CreatedAt).IsRequired();
             });
+
             modelBuilder.Entity<Comment>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -157,6 +156,31 @@ namespace SolutionOrdersReact.Server.Models
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
+            modelBuilder.Entity<GalleryRating>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.Value)
+                    .IsRequired();
+
+                entity.Property(e => e.CreatedAt)
+                    .IsRequired()
+                    .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                // 1 klient = 1 ocena na 1 arcydzieło
+                entity.HasIndex(e => new { e.GalleryItemId, e.ClientId })
+                    .IsUnique();
+
+                entity.HasOne<GalleryItem>()
+                    .WithMany()
+                    .HasForeignKey(e => e.GalleryItemId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne<Client>()
+                    .WithMany()
+                    .HasForeignKey(e => e.ClientId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
 
             SeedData(modelBuilder);
         }

@@ -7,9 +7,11 @@ namespace SolutionOrdersReact.Server.Models
         public Guid Id { get; set; }
 
         public Guid ProductId { get; set; }
-        public int ClientId { get; set; }
 
-        public string AuthorName { get; set; } = null!;
+        // ⬇️ POWIĄZANIE Z UŻYTKOWNIKIEM
+        public int UserId { get; set; }
+        public User User { get; set; } = null!;
+
         public string Text { get; set; } = null!;
 
         public DateTime CreatedAt { get; set; }

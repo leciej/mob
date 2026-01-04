@@ -103,10 +103,17 @@ namespace SolutionOrdersReact.Server.Models
             modelBuilder.Entity<Comment>(entity =>
             {
                 entity.HasKey(e => e.Id);
-                entity.Property(e => e.AuthorName).IsRequired().HasMaxLength(200);
-                entity.Property(e => e.Text).IsRequired();
+
+                entity.Property(e => e.Text)
+                    .IsRequired();
+
                 entity.Property(e => e.CreatedAt)
                     .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                entity.HasOne(e => e.User)
+                    .WithMany()
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<GalleryRating>(entity =>
@@ -148,6 +155,7 @@ namespace SolutionOrdersReact.Server.Models
                     Login = "admin",
                     Email = "admin@demo.pl",
                     Password = "",
+                    Role = "ADMIN",
                     CreatedAt = new DateTime(2024, 1, 1)
                 }
             );

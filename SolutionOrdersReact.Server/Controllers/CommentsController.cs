@@ -21,12 +21,13 @@ namespace SolutionOrdersReact.Server.Controllers
         public async Task<ActionResult<IEnumerable<CommentDto>>> GetComments(Guid productId)
         {
             var comments = await _context.Comments
+                .Include(c => c.User)
                 .Where(c => c.ProductId == productId)
                 .OrderByDescending(c => c.CreatedAt)
                 .Select(c => new CommentDto
                 {
                     Id = c.Id,
-                    Author = c.AuthorName,
+                    Author = c.User.Login,
                     Text = c.Text,
                     CreatedAt = c.CreatedAt
                 })
@@ -41,40 +42,45 @@ namespace SolutionOrdersReact.Server.Controllers
             Guid productId,
             [FromBody] CreateCommentRequest request)
         {
-            // 🔒 prosta walidacja
             if (string.IsNullOrWhiteSpace(request.Text))
                 return BadRequest("Komentarz nie może być pusty.");
+
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == request.UserId);
+
+            if (user == null)
+                return BadRequest("Nieprawidłowy użytkownik.");
 
             var comment = new Comment
             {
                 Id = Guid.NewGuid(),
                 ProductId = productId,
-                ClientId = request.ClientId,
-                AuthorName = request.AuthorName,
-                Text = request.Text,
+                UserId = user.Id,
+                Text = request.Text.Trim(),
                 CreatedAt = DateTime.UtcNow
             };
 
             _context.Comments.Add(comment);
             await _context.SaveChangesAsync();
 
-            var dto = new CommentDto
-            {
-                Id = comment.Id,
-                Author = comment.AuthorName,
-                Text = comment.Text,
-                CreatedAt = comment.CreatedAt
-            };
-
-            return CreatedAtAction(nameof(GetComments), new { productId }, dto);
+            return CreatedAtAction(
+                nameof(GetComments),
+                new { productId },
+                new CommentDto
+                {
+                    Id = comment.Id,
+                    Author = user.Login,
+                    Text = comment.Text,
+                    CreatedAt = comment.CreatedAt
+                }
+            );
         }
     }
 
     // 🔽 request do POST
     public class CreateCommentRequest
     {
-        public int ClientId { get; set; }
-        public string AuthorName { get; set; } = null!;
+        public int UserId { get; set; }
         public string Text { get; set; } = null!;
     }
 }

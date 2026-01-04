@@ -22,21 +22,21 @@ namespace SolutionOrdersReact.Server.Controllers
             [FromQuery] int? userId
         )
         {
-            var query = _context.GalleryRatings
+            var ratingsQuery = _context.GalleryRatings
                 .AsNoTracking()
-                .Where(r => r.GalleryItemId == galleryItemId);
+                .Where(r => r.GalleryItemId == galleryItemId && r.UserId != null); // ⬅️ ignoruj stock
 
-            var votes = await query.CountAsync();
+            var votes = await ratingsQuery.CountAsync();
 
             var average = votes > 0
-                ? Math.Round(await query.AverageAsync(r => r.Value), 1)
+                ? Math.Round(await ratingsQuery.AverageAsync(r => r.Value), 1)
                 : 0;
 
             int? myRating = null;
 
             if (userId.HasValue)
             {
-                myRating = await query
+                myRating = await ratingsQuery
                     .Where(r => r.UserId == userId.Value)
                     .Select(r => (int?)r.Value)
                     .FirstOrDefaultAsync();
@@ -58,57 +58,49 @@ namespace SolutionOrdersReact.Server.Controllers
         )
         {
             if (request.Value < 1 || request.Value > 5)
-                return BadRequest("Ocena musi być w zakresie 1–5.");
+                return BadRequest();
 
-            // 1️⃣ sprawdź czy arcydzieło istnieje
             var galleryExists = await _context.GalleryItems
                 .AsNoTracking()
                 .AnyAsync(g => g.Id == galleryItemId);
 
             if (!galleryExists)
-                return NotFound("Nie znaleziono arcydzieła.");
+                return NotFound();
 
-            // 2️⃣ sprawdź czy user istnieje
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Id == request.UserId);
+            var userExists = await _context.Users
+                .AsNoTracking()
+                .AnyAsync(u => u.Id == request.UserId);
 
-            if (user == null)
-                return BadRequest("Nieprawidłowy użytkownik.");
+            if (!userExists)
+                return BadRequest();
 
-            // 3️⃣ czy już oceniono
             var existingRating = await _context.GalleryRatings
                 .FirstOrDefaultAsync(r =>
                     r.GalleryItemId == galleryItemId &&
                     r.UserId == request.UserId
                 );
 
-            if (existingRating != null)
+            if (existingRating == null)
             {
-                // update
-                existingRating.Value = request.Value;
-                existingRating.CreatedAt = DateTime.UtcNow;
-            }
-            else
-            {
-                // insert
-                var rating = new GalleryRating
+                _context.GalleryRatings.Add(new GalleryRating
                 {
                     Id = Guid.NewGuid(),
                     GalleryItemId = galleryItemId,
                     UserId = request.UserId,
                     Value = request.Value,
                     CreatedAt = DateTime.UtcNow
-                };
-
-                _context.GalleryRatings.Add(rating);
+                });
+            }
+            else
+            {
+                existingRating.Value = request.Value;
+                existingRating.CreatedAt = DateTime.UtcNow;
             }
 
             await _context.SaveChangesAsync();
             return Ok();
         }
     }
-
-    // ===== DTO =====
 
     public class CreateGalleryRatingRequest
     {

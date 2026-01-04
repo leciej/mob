@@ -414,7 +414,7 @@ namespace SolutionOrdersReact.Server.Migrations
                             Email = "admin@demo.pl",
                             Login = "admin",
                             Name = "Admin",
-                            Password = "",
+                            Password = "admin",
                             Role = "ADMIN",
                             Surname = "System"
                         });

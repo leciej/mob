@@ -12,8 +12,8 @@ using SolutionOrdersReact.Server.Models;
 namespace SolutionOrdersReact.Server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260104190131_AktualizacjaGwiazdek")]
-    partial class AktualizacjaGwiazdek
+    [Migration("20260104191447_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -417,7 +417,7 @@ namespace SolutionOrdersReact.Server.Migrations
                             Email = "admin@demo.pl",
                             Login = "admin",
                             Name = "Admin",
-                            Password = "",
+                            Password = "admin",
                             Role = "ADMIN",
                             Surname = "System"
                         });

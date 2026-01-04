@@ -17,7 +17,7 @@ namespace SolutionOrdersReact.Server.Controllers
         }
 
         // =========================
-        // REGISTER
+        // REGISTER (USER)
         // =========================
         [HttpPost("register")]
         public async Task<ActionResult<UserDto>> Register(
@@ -36,7 +36,8 @@ namespace SolutionOrdersReact.Server.Controllers
                 Surname = request.Surname,
                 Login = request.Login,
                 Email = request.Email,
-                Password = request.Password
+                Password = request.Password,
+                Role = "USER"
             };
 
             _db.Users.Add(user);
@@ -48,12 +49,13 @@ namespace SolutionOrdersReact.Server.Controllers
                 Name = user.Name,
                 Surname = user.Surname,
                 Login = user.Login,
-                Email = user.Email
+                Email = user.Email,
+                Role = user.Role
             };
         }
 
         // =========================
-        // LOGIN (LOGIN LUB EMAIL)
+        // LOGIN (USER / ADMIN)
         // =========================
         [HttpPost("login")]
         public async Task<ActionResult<UserDto>> Login(
@@ -73,7 +75,38 @@ namespace SolutionOrdersReact.Server.Controllers
                 Name = user.Name,
                 Surname = user.Surname,
                 Login = user.Login,
-                Email = user.Email
+                Email = user.Email,
+                Role = user.Role
+            };
+        }
+
+        // =========================
+        // GUEST LOGIN (BACKEND)
+        // =========================
+        [HttpPost("guest")]
+        public async Task<ActionResult<UserDto>> GuestLogin()
+        {
+            var guest = new User
+            {
+                Name = "Gość",
+                Surname = "",
+                Login = $"guest_{Guid.NewGuid()}",
+                Email = "",
+                Password = "",
+                Role = "GUEST"
+            };
+
+            _db.Users.Add(guest);
+            await _db.SaveChangesAsync();
+
+            return new UserDto
+            {
+                Id = guest.Id,
+                Name = guest.Name,
+                Surname = guest.Surname,
+                Login = guest.Login,
+                Email = guest.Email,
+                Role = guest.Role
             };
         }
     }

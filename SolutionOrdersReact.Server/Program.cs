@@ -22,8 +22,10 @@ public class Program
             )
         );
 
-        // Mapster – automatyczne ładowanie konfiguracji IRegister
-        TypeAdapterConfig.GlobalSettings.Scan(Assembly.GetExecutingAssembly());
+        // Mapster
+        TypeAdapterConfig.GlobalSettings.Scan(
+            Assembly.GetExecutingAssembly()
+        );
 
         // MediatR
         builder.Services.AddMediatR(cfg =>
@@ -48,20 +50,54 @@ public class Program
 
         var app = builder.Build();
 
-        // Migracje
+        // =========================
+        // MIGRACJE + SEED ADMINA
+        // =========================
         using (var scope = app.Services.CreateScope())
         {
+            var db = scope.ServiceProvider
+                .GetRequiredService<ApplicationDbContext>();
+
             try
             {
-                var dbContext =
-                    scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                dbContext.Database.Migrate();
+                db.Database.Migrate();
+
+                // ADMIN MUSI ISTNIEĆ I MIEĆ ID = 1
+                var admin = db.Users.FirstOrDefault(u => u.Id == 1);
+
+                if (admin == null)
+                {
+                    admin = new User
+                    {
+                        Id = 1, // ⬅️ WYMUSZONE
+                        Name = "Admin",
+                        Surname = "System",
+                        Login = "admin",
+                        Email = "admin@admin.pl",
+                        Password = "admin",
+                        Role = "ADMIN"
+                    };
+
+                    db.Users.Add(admin);
+                    db.SaveChanges();
+                }
+                else if (admin.Role != "ADMIN")
+                {
+                    // ZABEZPIECZENIE: ID=1 ZAWSZE ADMIN
+                    admin.Role = "ADMIN";
+                    db.SaveChanges();
+                }
             }
             catch (Exception ex)
             {
                 var logger =
-                    scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-                logger.LogError(ex, "Błąd podczas migracji bazy danych");
+                    scope.ServiceProvider.GetRequiredService<
+                        ILogger<Program>
+                    >();
+                logger.LogError(
+                    ex,
+                    "Błąd podczas migracji lub seeda admina"
+                );
             }
         }
 

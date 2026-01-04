@@ -12,6 +12,9 @@ namespace SolutionOrdersReact.Server.Models
         public string Email { get; set; } = null!;
         public string Password { get; set; } = null!;
 
-        public DateTime CreatedAt { get; set; }
+        // ROLE: GUEST | USER | ADMIN
+        public string Role { get; set; } = "USER";
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

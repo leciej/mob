@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SolutionOrdersReact.Server.Models;
 
@@ -11,9 +12,11 @@ using SolutionOrdersReact.Server.Models;
 namespace SolutionOrdersReact.Server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260103214156_AddUsers")]
+    partial class AddUsers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -44,6 +47,22 @@ namespace SolutionOrdersReact.Server.Migrations
                     b.HasKey("IdCategory");
 
                     b.ToTable("Categories");
+
+                    b.HasData(
+                        new
+                        {
+                            IdCategory = 1,
+                            Description = "Urządzenia elektroniczne",
+                            IsActive = true,
+                            Name = "Elektronika"
+                        },
+                        new
+                        {
+                            IdCategory = 2,
+                            Description = "Produkty spożywcze",
+                            IsActive = true,
+                            Name = "Żywność"
+                        });
                 });
 
             modelBuilder.Entity("SolutionOrdersReact.Server.Models.Client", b =>
@@ -72,6 +91,24 @@ namespace SolutionOrdersReact.Server.Migrations
                     b.HasKey("IdClient");
 
                     b.ToTable("Clients");
+
+                    b.HasData(
+                        new
+                        {
+                            IdClient = 1,
+                            Adress = "ul. Główna 1, Warszawa",
+                            IsActive = true,
+                            Name = "Jan Kowalski",
+                            PhoneNumber = "500-100-200"
+                        },
+                        new
+                        {
+                            IdClient = 2,
+                            Adress = "ul. Kwiatowa 5, Kraków",
+                            IsActive = true,
+                            Name = "Anna Nowak",
+                            PhoneNumber = "600-200-300"
+                        });
                 });
 
             modelBuilder.Entity("SolutionOrdersReact.Server.Models.Comment", b =>
@@ -101,6 +138,10 @@ namespace SolutionOrdersReact.Server.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ClientId");
+
+                    b.HasIndex("ProductId", "CreatedAt");
 
                     b.ToTable("Comments");
                 });
@@ -152,12 +193,17 @@ namespace SolutionOrdersReact.Server.Migrations
 
                     b.Property<string>("GalleryItemId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("Value")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ClientId");
+
+                    b.HasIndex("GalleryItemId", "ClientId")
+                        .IsUnique();
 
                     b.ToTable("GalleryRatings");
                 });
@@ -169,9 +215,6 @@ namespace SolutionOrdersReact.Server.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdItem"));
-
-                    b.Property<int>("CategoryIdCategory")
-                        .HasColumnType("int");
 
                     b.Property<string>("Code")
                         .HasMaxLength(50)
@@ -204,16 +247,39 @@ namespace SolutionOrdersReact.Server.Migrations
                     b.Property<decimal?>("Quantity")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int?>("UnitOfMeasurementIdUnitOfMeasurement")
-                        .HasColumnType("int");
-
                     b.HasKey("IdItem");
 
-                    b.HasIndex("CategoryIdCategory");
+                    b.HasIndex("IdCategory");
 
-                    b.HasIndex("UnitOfMeasurementIdUnitOfMeasurement");
+                    b.HasIndex("IdUnitOfMeasurement");
 
                     b.ToTable("Items");
+
+                    b.HasData(
+                        new
+                        {
+                            IdItem = 1,
+                            Code = "LAP001",
+                            Description = "Laptop Dell Inspiron 15",
+                            IdCategory = 1,
+                            IdUnitOfMeasurement = 1,
+                            IsActive = true,
+                            Name = "Laptop Dell",
+                            Price = 3500m,
+                            Quantity = 10m
+                        },
+                        new
+                        {
+                            IdItem = 2,
+                            Code = "MON001",
+                            Description = "Monitor 24 cale",
+                            IdCategory = 1,
+                            IdUnitOfMeasurement = 1,
+                            IsActive = true,
+                            Name = "Monitor Samsung",
+                            Price = 800m,
+                            Quantity = 15m
+                        });
                 });
 
             modelBuilder.Entity("SolutionOrdersReact.Server.Models.Order", b =>
@@ -350,6 +416,20 @@ namespace SolutionOrdersReact.Server.Migrations
                             Description = "Sztuki",
                             IsActive = true,
                             Name = "szt"
+                        },
+                        new
+                        {
+                            IdUnitOfMeasurement = 2,
+                            Description = "Kilogramy",
+                            IsActive = true,
+                            Name = "kg"
+                        },
+                        new
+                        {
+                            IdUnitOfMeasurement = 3,
+                            Description = "Litry",
+                            IsActive = true,
+                            Name = "l"
                         });
                 });
 
@@ -399,18 +479,6 @@ namespace SolutionOrdersReact.Server.Migrations
                         .IsUnique();
 
                     b.ToTable("Users");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Email = "admin@demo.pl",
-                            Login = "admin",
-                            Name = "Admin",
-                            Password = "",
-                            Surname = "System"
-                        });
                 });
 
             modelBuilder.Entity("SolutionOrdersReact.Server.Models.Worker", b =>
@@ -444,19 +512,70 @@ namespace SolutionOrdersReact.Server.Migrations
                     b.HasKey("IdWorker");
 
                     b.ToTable("Workers");
+
+                    b.HasData(
+                        new
+                        {
+                            IdWorker = 1,
+                            FirstName = "Piotr",
+                            IsActive = true,
+                            LastName = "Kowalczyk",
+                            Login = "pkowalczyk",
+                            Password = "haslo123"
+                        },
+                        new
+                        {
+                            IdWorker = 2,
+                            FirstName = "Maria",
+                            IsActive = true,
+                            LastName = "Wiśniewska",
+                            Login = "mwisnieska",
+                            Password = "haslo456"
+                        });
+                });
+
+            modelBuilder.Entity("SolutionOrdersReact.Server.Models.Comment", b =>
+                {
+                    b.HasOne("SolutionOrdersReact.Server.Models.Client", null)
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SolutionOrdersReact.Server.Models.Product", null)
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("SolutionOrdersReact.Server.Models.GalleryRating", b =>
+                {
+                    b.HasOne("SolutionOrdersReact.Server.Models.Client", null)
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SolutionOrdersReact.Server.Models.GalleryItem", null)
+                        .WithMany()
+                        .HasForeignKey("GalleryItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("SolutionOrdersReact.Server.Models.Item", b =>
                 {
                     b.HasOne("SolutionOrdersReact.Server.Models.Category", "Category")
                         .WithMany("Items")
-                        .HasForeignKey("CategoryIdCategory")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("IdCategory")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("SolutionOrdersReact.Server.Models.UnitOfMeasurement", "UnitOfMeasurement")
                         .WithMany("Items")
-                        .HasForeignKey("UnitOfMeasurementIdUnitOfMeasurement");
+                        .HasForeignKey("IdUnitOfMeasurement")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Category");
 

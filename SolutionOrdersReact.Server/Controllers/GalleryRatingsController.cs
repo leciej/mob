@@ -5,7 +5,7 @@ using SolutionOrdersReact.Server.Models;
 namespace SolutionOrdersReact.Server.Controllers
 {
     [ApiController]
-    [Route("api/gallery/{galleryItemId}/ratings")]
+    [Route("api/gallery/{galleryItemId:guid}/ratings")]
     public class GalleryRatingsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -15,26 +15,32 @@ namespace SolutionOrdersReact.Server.Controllers
             _context = context;
         }
 
-        // GET /api/gallery/{galleryItemId}/ratings
+        // GET /api/gallery/{galleryItemId}/ratings?userId=1
         [HttpGet]
-        public async Task<ActionResult<GalleryRatingSummaryDto>> GetRatings(string galleryItemId)
+        public async Task<ActionResult<GalleryRatingSummaryDto>> GetRatings(
+            Guid galleryItemId,
+            [FromQuery] int? userId
+        )
         {
-            // TEMP: klient = 1 (jak przy komentarzach)
-            const int clientId = 1;
-
             var query = _context.GalleryRatings
                 .AsNoTracking()
                 .Where(r => r.GalleryItemId == galleryItemId);
 
             var votes = await query.CountAsync();
+
             var average = votes > 0
                 ? Math.Round(await query.AverageAsync(r => r.Value), 1)
                 : 0;
 
-            var myRating = await query
-                .Where(r => r.ClientId == clientId)
-                .Select(r => (int?)r.Value)
-                .FirstOrDefaultAsync();
+            int? myRating = null;
+
+            if (userId.HasValue)
+            {
+                myRating = await query
+                    .Where(r => r.UserId == userId.Value)
+                    .Select(r => (int?)r.Value)
+                    .FirstOrDefaultAsync();
+            }
 
             return Ok(new GalleryRatingSummaryDto
             {
@@ -46,59 +52,67 @@ namespace SolutionOrdersReact.Server.Controllers
 
         // POST /api/gallery/{galleryItemId}/ratings
         [HttpPost]
-        public async Task<IActionResult> AddRating(
-            string galleryItemId,
-            [FromBody] CreateGalleryRatingRequest request)
+        public async Task<IActionResult> AddOrUpdateRating(
+            Guid galleryItemId,
+            [FromBody] CreateGalleryRatingRequest request
+        )
         {
             if (request.Value < 1 || request.Value > 5)
                 return BadRequest("Ocena musi być w zakresie 1–5.");
 
-            // 1) sprawdź czy arcydzieło istnieje
-            var existsGallery = await _context.GalleryItems
+            // 1️⃣ sprawdź czy arcydzieło istnieje
+            var galleryExists = await _context.GalleryItems
                 .AsNoTracking()
                 .AnyAsync(g => g.Id == galleryItemId);
 
-            if (!existsGallery)
+            if (!galleryExists)
                 return NotFound("Nie znaleziono arcydzieła.");
 
-            // 2) sprawdź czy client istnieje
-            var existsClient = await _context.Clients
-                .AsNoTracking()
-                .AnyAsync(c => c.IdClient == request.ClientId);
+            // 2️⃣ sprawdź czy user istnieje
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == request.UserId);
 
-            if (!existsClient)
-                return BadRequest("Nieprawidłowy klient.");
+            if (user == null)
+                return BadRequest("Nieprawidłowy użytkownik.");
 
-            // 3) sprawdź czy już oceniono (bez polegania na wyjątku)
-            var alreadyRated = await _context.GalleryRatings
-                .AsNoTracking()
-                .AnyAsync(r =>
+            // 3️⃣ czy już oceniono
+            var existingRating = await _context.GalleryRatings
+                .FirstOrDefaultAsync(r =>
                     r.GalleryItemId == galleryItemId &&
-                    r.ClientId == request.ClientId);
+                    r.UserId == request.UserId
+                );
 
-            if (alreadyRated)
-                return Conflict("Już oceniono to arcydzieło.");
-
-            // 4) zapis
-            var rating = new GalleryRating
+            if (existingRating != null)
             {
-                Id = Guid.NewGuid(),
-                GalleryItemId = galleryItemId,
-                ClientId = request.ClientId,
-                Value = request.Value,
-                CreatedAt = DateTime.UtcNow
-            };
+                // update
+                existingRating.Value = request.Value;
+                existingRating.CreatedAt = DateTime.UtcNow;
+            }
+            else
+            {
+                // insert
+                var rating = new GalleryRating
+                {
+                    Id = Guid.NewGuid(),
+                    GalleryItemId = galleryItemId,
+                    UserId = request.UserId,
+                    Value = request.Value,
+                    CreatedAt = DateTime.UtcNow
+                };
 
-            _context.GalleryRatings.Add(rating);
+                _context.GalleryRatings.Add(rating);
+            }
+
             await _context.SaveChangesAsync();
-
             return Ok();
         }
     }
 
+    // ===== DTO =====
+
     public class CreateGalleryRatingRequest
     {
-        public int ClientId { get; set; }
+        public int UserId { get; set; }
         public int Value { get; set; }
     }
 

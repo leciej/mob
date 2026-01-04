@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SolutionOrdersReact.Server.Models;
 
@@ -11,9 +12,11 @@ using SolutionOrdersReact.Server.Models;
 namespace SolutionOrdersReact.Server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260104182611_AktualizacjaKomci")]
+    partial class AktualizacjaKomci
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -104,9 +107,8 @@ namespace SolutionOrdersReact.Server.Migrations
 
             modelBuilder.Entity("SolutionOrdersReact.Server.Models.GalleryItem", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Artist")
                         .IsRequired()
@@ -140,26 +142,22 @@ namespace SolutionOrdersReact.Server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int>("ClientId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("SYSUTCDATETIME()");
 
-                    b.Property<Guid>("GalleryItemId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
+                    b.Property<string>("GalleryItemId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Value")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("GalleryItemId");
-
-                    b.HasIndex("UserId", "GalleryItemId")
-                        .IsUnique();
 
                     b.ToTable("GalleryRatings");
                 });
@@ -458,27 +456,8 @@ namespace SolutionOrdersReact.Server.Migrations
                     b.HasOne("SolutionOrdersReact.Server.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("SolutionOrdersReact.Server.Models.GalleryRating", b =>
-                {
-                    b.HasOne("SolutionOrdersReact.Server.Models.GalleryItem", "GalleryItem")
-                        .WithMany()
-                        .HasForeignKey("GalleryItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("SolutionOrdersReact.Server.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("GalleryItem");
 
                     b.Navigation("User");
                 });

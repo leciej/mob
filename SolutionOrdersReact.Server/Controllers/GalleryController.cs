@@ -27,8 +27,8 @@ namespace SolutionOrdersReact.Server.Controllers
         }
 
         // GET: /api/gallery/{id}
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(string id)
+        [HttpGet("{id:guid}")]
+        public async Task<IActionResult> GetById(Guid id)
         {
             var item = await _context.GalleryItems
                 .FirstOrDefaultAsync(x => x.Id == id);
@@ -45,7 +45,7 @@ namespace SolutionOrdersReact.Server.Controllers
         {
             var item = new GalleryItem
             {
-                Id = Guid.NewGuid().ToString(),
+                Id = Guid.NewGuid(),          // ✅ GUID, nie string
                 Title = dto.Title,
                 Artist = dto.Artist,
                 Price = dto.Price,
@@ -60,8 +60,8 @@ namespace SolutionOrdersReact.Server.Controllers
         }
 
         // PUT: /api/gallery/{id}
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(string id, [FromBody] GalleryItemRequest dto)
+        [HttpPut("{id:guid}")]
+        public async Task<IActionResult> Update(Guid id, [FromBody] GalleryItemRequest dto)
         {
             var existing = await _context.GalleryItems
                 .FirstOrDefaultAsync(x => x.Id == id);
@@ -80,8 +80,8 @@ namespace SolutionOrdersReact.Server.Controllers
         }
 
         // DELETE: /api/gallery/{id}
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(string id)
+        [HttpDelete("{id:guid}")]
+        public async Task<IActionResult> Delete(Guid id)
         {
             var item = await _context.GalleryItems
                 .FirstOrDefaultAsync(x => x.Id == id);

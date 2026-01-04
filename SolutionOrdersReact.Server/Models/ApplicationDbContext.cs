@@ -100,11 +100,32 @@ namespace SolutionOrdersReact.Server.Models
                 entity.Property(e => e.CreatedAt).IsRequired();
             });
 
+            /* =========================
+               COMMENTS
+               ========================= */
             modelBuilder.Entity<Comment>(entity =>
             {
                 entity.HasKey(e => e.Id);
 
-                entity.Property(e => e.Text)
+                entity.Property(e => e.Text).IsRequired();
+
+                entity.Property(e => e.CreatedAt)
+                    .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                entity.HasOne(e => e.User)
+                    .WithMany()
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            /* =========================
+               GALLERY RATINGS ⭐
+               ========================= */
+            modelBuilder.Entity<GalleryRating>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.Value)
                     .IsRequired();
 
                 entity.Property(e => e.CreatedAt)
@@ -113,15 +134,16 @@ namespace SolutionOrdersReact.Server.Models
                 entity.HasOne(e => e.User)
                     .WithMany()
                     .HasForeignKey(e => e.UserId)
-                    .OnDelete(DeleteBehavior.Restrict);
-            });
+                    .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<GalleryRating>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.Value).IsRequired();
-                entity.Property(e => e.CreatedAt)
-                    .HasDefaultValueSql("SYSUTCDATETIME()");
+                entity.HasOne(e => e.GalleryItem)
+                    .WithMany()
+                    .HasForeignKey(e => e.GalleryItemId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                // ⛔ jeden user = jedna ocena na dzieło
+                entity.HasIndex(e => new { e.UserId, e.GalleryItemId })
+                    .IsUnique();
             });
 
             modelBuilder.Entity<User>(entity =>
@@ -154,7 +176,7 @@ namespace SolutionOrdersReact.Server.Models
                     Surname = "System",
                     Login = "admin",
                     Email = "admin@demo.pl",
-                    Password = "",
+                    Password = "admin",
                     Role = "ADMIN",
                     CreatedAt = new DateTime(2024, 1, 1)
                 }

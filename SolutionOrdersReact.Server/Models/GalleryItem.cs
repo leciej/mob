@@ -1,23 +1,24 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace SolutionOrdersReact.Server.Models
 {
     public class GalleryItem
     {
         [Key]
-        public string Id { get; set; }
+        public Guid Id { get; set; }   // ✅ MUSI BYĆ Guid
 
         [Required]
         [MaxLength(200)]
-        public string Title { get; set; }
+        public string Title { get; set; } = null!;
 
         [Required]
         [MaxLength(200)]
-        public string Artist { get; set; }
+        public string Artist { get; set; } = null!;
 
         [Required]
         [MaxLength(500)]
-        public string ImageUrl { get; set; }
+        public string ImageUrl { get; set; } = null!;
 
         public decimal Price { get; set; }
 

@@ -6,12 +6,16 @@ namespace SolutionOrdersReact.Server.Models
     {
         public Guid Id { get; set; }
 
-        // FK musi mieć TEN SAM TYP co GalleryItem.Id (string)
-        public string GalleryItemId { get; set; } = null!;
+        // ⬅️ POWIĄZANIE Z ARCydziełem
+        public Guid GalleryItemId { get; set; }
+        public GalleryItem GalleryItem { get; set; } = null!;
 
-        public int ClientId { get; set; }
+        // ⬅️ POWIĄZANIE Z UŻYTKOWNIKIEM
+        public int UserId { get; set; }
+        public User User { get; set; } = null!;
 
-        public int Value { get; set; } // 1–5
+        // ⭐ 1–5
+        public int Value { get; set; }
 
         public DateTime CreatedAt { get; set; }
     }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SolutionOrdersReact.Server.Models;
+using SolutionOrdersReact.Server.Services.ActivityLog;
 
 namespace SolutionOrdersReact.Server.Controllers
 {
@@ -9,10 +10,14 @@ namespace SolutionOrdersReact.Server.Controllers
     public class GalleryRatingsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly IActivityLogService _activityLog;
 
-        public GalleryRatingsController(ApplicationDbContext context)
+        public GalleryRatingsController(
+            ApplicationDbContext context,
+            IActivityLogService activityLog)
         {
             _context = context;
+            _activityLog = activityLog;
         }
 
         // GET /api/gallery/{galleryItemId}/ratings?userId=1
@@ -80,7 +85,9 @@ namespace SolutionOrdersReact.Server.Controllers
                     r.UserId == request.UserId
                 );
 
-            if (existingRating == null)
+            var isCreate = existingRating == null;
+
+            if (isCreate)
             {
                 _context.GalleryRatings.Add(new GalleryRating
                 {
@@ -93,11 +100,29 @@ namespace SolutionOrdersReact.Server.Controllers
             }
             else
             {
-                existingRating.Value = request.Value;
+                existingRating!.Value = request.Value;
                 existingRating.CreatedAt = DateTime.UtcNow;
             }
 
             await _context.SaveChangesAsync();
+
+            // ✅ ACTIVITY LOG
+            await _activityLog.LogAsync(
+                isCreate
+                    ? ActivityEventType.RatingCreated
+                    : ActivityEventType.RatingUpdated,
+                userId: request.UserId,
+                targetType: "GalleryItem",
+                targetId: galleryItemId.ToString(),
+                message: isCreate
+                    ? "Dodano ocenę"
+                    : "Zmieniono ocenę",
+                data: new
+                {
+                    value = request.Value
+                }
+            );
+
             return Ok();
         }
     }

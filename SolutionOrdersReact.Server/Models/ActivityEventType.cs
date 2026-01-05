@@ -14,10 +14,13 @@
         RatingCreated,
         RatingUpdated,
 
-        // Cart / Orders
+        // Cart
         CartItemAdded,
+        CartItemQuantityChanged,
+        CartItemRemoved,
+        CartCleared,
 
-        // Orders (na przyszłość)
+        // Orders (na przyszłość / checkout)
         OrderCreated,
 
         // Gallery items (na przyszłość)

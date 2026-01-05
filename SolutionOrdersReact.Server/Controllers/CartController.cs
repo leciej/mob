@@ -29,19 +29,17 @@ namespace SolutionOrdersReact.Server.Controllers
             [FromBody] AddToCartRequestDto request,
             CancellationToken ct)
         {
-            Console.WriteLine(">>> ADD TO CART HIT <<<");
-
             if (request.Quantity < 1)
                 return BadRequest("Ilość musi być >= 1.");
-
-            // =========================
-            // 1️⃣ Product LUB GalleryItem
-            // =========================
 
             string targetType;
             string name;
             decimal price;
             string? imageUrl;
+
+            // =========================
+            // Product LUB GalleryItem
+            // =========================
 
             var product = await _db.Products
                 .AsNoTracking()
@@ -70,39 +68,43 @@ namespace SolutionOrdersReact.Server.Controllers
             }
 
             // =========================
-            // 2️⃣ ORDER (techniczny koszyk)
+            // CartItem (KOSZYK)
             // =========================
 
-            var order = new Order
-            {
-                Id = Guid.NewGuid(),
-                CreatedAt = DateTime.UtcNow,
-                TotalAmount = price * request.Quantity
-            };
+            var existing = await _db.CartItems.FirstOrDefaultAsync(
+                c =>
+                    c.UserId == request.UserId &&
+                    c.TargetType == targetType &&
+                    c.TargetId == request.ProductId,
+                ct
+            );
 
-            _db.Orders.Add(order);
+            if (existing != null)
+            {
+                existing.Quantity += (int)request.Quantity;
+            }
+            else
+            {
+                var cartItem = new CartItem
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = request.UserId,
+                    TargetType = targetType,
+                    TargetId = request.ProductId,
+                    Name = name,
+                    Price = price,
+                    Quantity = (int)request.Quantity,
+                    ImageUrl = imageUrl,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                _db.CartItems.Add(cartItem);
+            }
+
             await _db.SaveChangesAsync(ct);
 
             // =========================
-            // 3️⃣ ORDER ITEM
-            // =========================
-
-            var item = new OrderItem
-            {
-                Id = Guid.NewGuid(),
-                OrderId = order.Id,
-                Source = request.UserId.HasValue ? "USER" : "GUEST",
-                Name = name,
-                Price = price,
-                Quantity = (int)request.Quantity,
-                ImageUrl = imageUrl
-            };
-
-            _db.OrderItems.Add(item);
-            await _db.SaveChangesAsync(ct);
-
-            // =========================
-            // 4️⃣ ACTIVITY LOG
+            // ACTIVITY LOG
             // =========================
 
             await _activityLog.LogAsync(
@@ -114,41 +116,114 @@ namespace SolutionOrdersReact.Server.Controllers
                 data: new
                 {
                     name,
-                    quantity = request.Quantity,
-                    orderId = order.Id
+                    quantity = request.Quantity
                 },
                 ct: ct
             );
 
-            return Ok(new
-            {
-                orderId = order.Id,
-                itemId = item.Id
-            });
+            return Ok();
         }
 
         // =====================================================
-        // GET /api/cart
+        // GET /api/cart?userId=1
         // =====================================================
         [HttpGet]
         public async Task<IActionResult> GetCart(
+            [FromQuery] int? userId,
             CancellationToken ct)
         {
-            var items = await _db.OrderItems
-                .AsNoTracking()
-                .OrderByDescending(i => i.Id)
-                .Select(i => new
+            var query = _db.CartItems.AsNoTracking();
+
+            if (userId.HasValue)
+            {
+                query = query.Where(c => c.UserId == userId.Value);
+            }
+
+            var items = await query
+                .OrderByDescending(c => c.CreatedAt)
+                .Select(c => new
                 {
-                    id = i.Id,
-                    name = i.Name,
-                    price = i.Price,
-                    quantity = i.Quantity,
-                    imageUrl = i.ImageUrl,
-                    source = i.Source
+                    cartItemId = c.Id,
+                    id = c.TargetId,
+                    name = c.Name,
+                    price = c.Price,
+                    quantity = c.Quantity,
+                    imageUrl = c.ImageUrl,
+                    source = c.TargetType == "Product"
+                        ? "PRODUCTS"
+                        : "GALLERY"
                 })
                 .ToListAsync(ct);
 
             return Ok(items);
+        }
+
+        // =====================================================
+        // PATCH /api/cart/{id}/quantity
+        // =====================================================
+        [HttpPatch("{id:guid}/quantity")]
+        public async Task<IActionResult> ChangeQuantity(
+            Guid id,
+            [FromQuery] int delta,
+            CancellationToken ct)
+        {
+            var item = await _db.CartItems
+                .FirstOrDefaultAsync(c => c.Id == id, ct);
+
+            if (item == null)
+                return NotFound();
+
+            item.Quantity += delta;
+
+            if (item.Quantity <= 0)
+            {
+                _db.CartItems.Remove(item);
+            }
+
+            await _db.SaveChangesAsync(ct);
+
+            return NoContent();
+        }
+
+        // =====================================================
+        // DELETE /api/cart/{id}
+        // =====================================================
+        [HttpDelete("{id:guid}")]
+        public async Task<IActionResult> RemoveItem(
+            Guid id,
+            CancellationToken ct)
+        {
+            var item = await _db.CartItems
+                .FirstOrDefaultAsync(c => c.Id == id, ct);
+
+            if (item == null)
+                return NotFound();
+
+            _db.CartItems.Remove(item);
+            await _db.SaveChangesAsync(ct);
+
+            return NoContent();
+        }
+
+        // =====================================================
+        // DELETE /api/cart/clear
+        // =====================================================
+        [HttpDelete("clear")]
+        public async Task<IActionResult> ClearCart(
+            [FromQuery] int? userId,
+            CancellationToken ct)
+        {
+            var query = _db.CartItems.AsQueryable();
+
+            if (userId.HasValue)
+            {
+                query = query.Where(c => c.UserId == userId.Value);
+            }
+
+            _db.CartItems.RemoveRange(query);
+            await _db.SaveChangesAsync(ct);
+
+            return NoContent();
         }
     }
 }

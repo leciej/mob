@@ -12,17 +12,25 @@ namespace SolutionOrdersReact.Server.Models
         public DbSet<Worker> Workers { get; set; }
         public DbSet<Item> Items { get; set; }
 
+        // ORDERS = ZAMÓWIENIA (PO KLIKNIĘCIU "ZAMÓW")
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
 
+        // KATALOG
         public DbSet<Product> Products { get; set; }
         public DbSet<GalleryItem> GalleryItems { get; set; }
+
+        // SOCIAL
         public DbSet<Comment> Comments { get; set; }
         public DbSet<GalleryRating> GalleryRatings { get; set; }
 
+        // USERS
         public DbSet<User> Users { get; set; }
 
-        // ✅ NOWE: Activity / Event Log
+        // 🛒 KOSZYK (PRZED ZAMÓWIENIEM)
+        public DbSet<CartItem> CartItems { get; set; }
+
+        // 📜 ACTIVITY LOG
         public DbSet<ActivityLog> ActivityLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -93,6 +101,11 @@ namespace SolutionOrdersReact.Server.Models
                 entity.Property(e => e.ImageUrl).HasMaxLength(500);
             });
 
+            modelBuilder.Entity<Product>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+            });
+
             modelBuilder.Entity<GalleryItem>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -128,8 +141,7 @@ namespace SolutionOrdersReact.Server.Models
             {
                 entity.HasKey(e => e.Id);
 
-                entity.Property(e => e.Value)
-                    .IsRequired();
+                entity.Property(e => e.Value).IsRequired();
 
                 entity.Property(e => e.CreatedAt)
                     .HasDefaultValueSql("SYSUTCDATETIME()");
@@ -144,7 +156,6 @@ namespace SolutionOrdersReact.Server.Models
                     .HasForeignKey(e => e.GalleryItemId)
                     .OnDelete(DeleteBehavior.Cascade);
 
-                // ⛔ jeden user = jedna ocena na dzieło
                 entity.HasIndex(e => new { e.UserId, e.GalleryItemId })
                     .IsUnique();
             });
@@ -167,7 +178,39 @@ namespace SolutionOrdersReact.Server.Models
             });
 
             /* =========================
-               ACTIVITY LOG / EVENT LOG
+               🛒 CART ITEMS
+               ========================= */
+            modelBuilder.Entity<CartItem>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.TargetType)
+                    .HasMaxLength(50)
+                    .IsRequired();
+
+                entity.Property(e => e.Name)
+                    .HasMaxLength(300)
+                    .IsRequired();
+
+                entity.Property(e => e.Price)
+                    .HasColumnType("decimal(18,2)")
+                    .IsRequired();
+
+                entity.Property(e => e.Quantity)
+                    .IsRequired();
+
+                entity.Property(e => e.ImageUrl)
+                    .HasMaxLength(500);
+
+                entity.Property(e => e.CreatedAt)
+                    .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                entity.HasIndex(e => e.UserId);
+                entity.HasIndex(e => new { e.UserId, e.TargetType, e.TargetId });
+            });
+
+            /* =========================
+               📜 ACTIVITY LOG / EVENT LOG
                ========================= */
             modelBuilder.Entity<ActivityLog>(entity =>
             {
@@ -228,16 +271,6 @@ namespace SolutionOrdersReact.Server.Models
                     Password = "admin",
                     Role = "ADMIN",
                     CreatedAt = new DateTime(2024, 1, 1)
-                }
-            );
-
-            modelBuilder.Entity<UnitOfMeasurement>().HasData(
-                new UnitOfMeasurement
-                {
-                    IdUnitOfMeasurement = 1,
-                    Name = "szt",
-                    Description = "Sztuki",
-                    IsActive = true
                 }
             );
         }

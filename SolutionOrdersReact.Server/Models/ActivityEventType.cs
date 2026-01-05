@@ -14,6 +14,9 @@
         RatingCreated,
         RatingUpdated,
 
+        // Cart / Orders
+        CartItemAdded,
+
         // Orders (na przyszłość)
         OrderCreated,
 

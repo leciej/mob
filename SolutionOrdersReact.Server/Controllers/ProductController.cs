@@ -29,10 +29,12 @@ public sealed class ProductController : ControllerBase
 
     [HttpPost]
     public async Task<ActionResult<ProductDto>> Create(
-        [FromBody] CreateProductRequestDto payload)
+        [FromBody] CreateProductRequestDto payload,
+        [FromQuery] int? actorUserId // ✅ admin id
+    )
     {
         var result = await _mediator.Send(
-            new CreateProductCommand(payload));
+            new CreateProductCommand(payload, actorUserId));
 
         return Created($"/api/products/{result.Id}", result);
     }
@@ -40,19 +42,24 @@ public sealed class ProductController : ControllerBase
     [HttpPatch("{id}")]
     public async Task<IActionResult> Update(
         string id,
-        [FromBody] UpdateProductRequestDto payload)
+        [FromBody] UpdateProductRequestDto payload,
+        [FromQuery] int? actorUserId // ✅ admin id
+    )
     {
         var success = await _mediator.Send(
-            new UpdateProductCommand(id, payload));
+            new UpdateProductCommand(id, payload, actorUserId));
 
         return success ? NoContent() : NotFound();
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> Remove(string id)
+    public async Task<IActionResult> Remove(
+        string id,
+        [FromQuery] int? actorUserId // ✅ admin id
+    )
     {
         var success = await _mediator.Send(
-            new DeleteProductCommand(id));
+            new DeleteProductCommand(id, actorUserId));
 
         return success ? NoContent() : NotFound();
     }

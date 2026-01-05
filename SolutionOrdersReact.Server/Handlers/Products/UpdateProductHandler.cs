@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using SolutionOrdersReact.Server.Models;
 using SolutionOrdersReact.Server.Requests.Products;
+using SolutionOrdersReact.Server.Services.ActivityLog;
 
 namespace SolutionOrdersReact.Server.Handlers.Products;
 
@@ -9,10 +10,14 @@ public sealed class UpdateProductHandler
     : IRequestHandler<UpdateProductCommand, bool>
 {
     private readonly ApplicationDbContext _db;
+    private readonly IActivityLogService _activityLog;
 
-    public UpdateProductHandler(ApplicationDbContext db)
+    public UpdateProductHandler(
+        ApplicationDbContext db,
+        IActivityLogService activityLog)
     {
         _db = db;
+        _activityLog = activityLog;
     }
 
     public async Task<bool> Handle(
@@ -43,6 +48,22 @@ public sealed class UpdateProductHandler
         product.UpdatedAt = DateTimeOffset.UtcNow;
 
         await _db.SaveChangesAsync(cancellationToken);
+
+        // ✅ ACTIVITY LOG: ProductUpdated
+        await _activityLog.LogAsync(
+            ActivityEventType.ProductUpdated,
+            userId: request.ActorUserId,
+            targetType: "Product",
+            targetId: product.Id.ToString(),
+            message: "Zaktualizowano produkt",
+            data: new
+            {
+                product.Name,
+                product.Price
+            },
+            ct: cancellationToken
+        );
+
         return true;
     }
 }

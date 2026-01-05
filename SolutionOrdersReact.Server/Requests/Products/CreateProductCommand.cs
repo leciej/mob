@@ -4,5 +4,6 @@ using SolutionOrdersReact.Server.Dto;
 namespace SolutionOrdersReact.Server.Requests.Products;
 
 public sealed record CreateProductCommand(
-    CreateProductRequestDto Payload)
-    : IRequest<ProductDto>;
+    CreateProductRequestDto Payload,
+    int? ActorUserId = null
+) : IRequest<ProductDto>;

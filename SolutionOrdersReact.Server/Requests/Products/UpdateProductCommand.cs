@@ -5,5 +5,6 @@ namespace SolutionOrdersReact.Server.Requests.Products;
 
 public sealed record UpdateProductCommand(
     string Id,
-    UpdateProductRequestDto Payload)
-    : IRequest<bool>;
+    UpdateProductRequestDto Payload,
+    int? ActorUserId = null
+) : IRequest<bool>;

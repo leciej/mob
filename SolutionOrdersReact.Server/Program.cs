@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SolutionOrdersReact.Server.Models;
+using SolutionOrdersReact.Server.Services.ActivityLog;
 using Mapster;
 using MediatR;
 using System.Reflection;
@@ -31,6 +32,12 @@ public class Program
         builder.Services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssemblyContaining<Program>()
         );
+
+        // ✅ HttpContext (WYMAGANE dla ActivityLog)
+        builder.Services.AddHttpContextAccessor();
+
+        // ✅ Activity Log Service
+        builder.Services.AddScoped<IActivityLogService, ActivityLogService>();
 
         // CORS
         builder.Services.AddCors(options =>

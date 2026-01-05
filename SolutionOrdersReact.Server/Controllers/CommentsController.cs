@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using SolutionOrdersReact.Server.Models;
 using SolutionOrdersReact.Server.Dto;
+using SolutionOrdersReact.Server.Services.ActivityLog;
 
 namespace SolutionOrdersReact.Server.Controllers
 {
@@ -10,10 +11,14 @@ namespace SolutionOrdersReact.Server.Controllers
     public class CommentsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly IActivityLogService _activityLog;
 
-        public CommentsController(ApplicationDbContext context)
+        public CommentsController(
+            ApplicationDbContext context,
+            IActivityLogService activityLog)
         {
             _context = context;
+            _activityLog = activityLog;
         }
 
         // GET: api/products/{productId}/comments
@@ -62,6 +67,20 @@ namespace SolutionOrdersReact.Server.Controllers
 
             _context.Comments.Add(comment);
             await _context.SaveChangesAsync();
+
+            // ✅ ACTIVITY LOG: CommentAdded
+            await _activityLog.LogAsync(
+                ActivityEventType.CommentAdded,
+                userId: user.Id,
+                targetType: "Product",
+                targetId: productId.ToString(),
+                message: "Dodano komentarz",
+                data: new
+                {
+                    commentId = comment.Id,
+                    textLength = comment.Text.Length
+                }
+            );
 
             return CreatedAtAction(
                 nameof(GetComments),

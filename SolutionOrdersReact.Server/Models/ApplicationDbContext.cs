@@ -22,6 +22,9 @@ namespace SolutionOrdersReact.Server.Models
 
         public DbSet<User> Users { get; set; }
 
+        // ✅ NOWE: Activity / Event Log
+        public DbSet<ActivityLog> ActivityLogs { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -161,6 +164,52 @@ namespace SolutionOrdersReact.Server.Models
 
                 entity.HasIndex(e => e.Login).IsUnique();
                 entity.HasIndex(e => e.Email).IsUnique();
+            });
+
+            /* =========================
+               ACTIVITY LOG / EVENT LOG
+               ========================= */
+            modelBuilder.Entity<ActivityLog>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.EventType)
+                    .HasConversion<string>()
+                    .HasMaxLength(100)
+                    .IsRequired();
+
+                entity.Property(e => e.CreatedAt)
+                    .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                entity.Property(e => e.TargetType)
+                    .HasMaxLength(64);
+
+                entity.Property(e => e.TargetId)
+                    .HasMaxLength(64);
+
+                entity.Property(e => e.Message)
+                    .HasMaxLength(500);
+
+                entity.Property(e => e.IpAddress)
+                    .HasMaxLength(64);
+
+                entity.Property(e => e.UserAgent)
+                    .HasMaxLength(256);
+
+                entity.Property(e => e.Path)
+                    .HasMaxLength(256);
+
+                entity.Property(e => e.CorrelationId)
+                    .HasMaxLength(64);
+
+                entity.HasOne(e => e.User)
+                    .WithMany()
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.SetNull);
+
+                entity.HasIndex(e => e.CreatedAt);
+                entity.HasIndex(e => new { e.UserId, e.CreatedAt });
+                entity.HasIndex(e => new { e.TargetType, e.TargetId, e.CreatedAt });
             });
 
             SeedData(modelBuilder);

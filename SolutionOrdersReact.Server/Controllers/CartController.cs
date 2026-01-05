@@ -21,66 +21,96 @@ namespace SolutionOrdersReact.Server.Controllers
             _activityLog = activityLog;
         }
 
-        // USER / GUEST: AddToCart
         [HttpPost("add")]
         public async Task<IActionResult> AddToCart(
-    [FromBody] AddToCartRequestDto request,
-    CancellationToken ct)
+            [FromBody] AddToCartRequestDto request,
+            CancellationToken ct)
         {
             Console.WriteLine(">>> ADD TO CART HIT <<<");
-            Console.WriteLine("REQUEST BODY:");
-            Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(request));
-
-            // reszta kodu
-
-
-            // 1️⃣ sprawdź produkt
-            var product = await _db.Products
-                .AsNoTracking()
-                .FirstOrDefaultAsync(p => p.Id == request.ProductId, ct);
-
-            if (product == null)
-                return NotFound("Produkt nie istnieje.");
 
             if (request.Quantity < 1)
                 return BadRequest("Ilość musi być >= 1.");
 
-            // 2️⃣ UTWÓRZ ORDER (wymagany przez FK)
+            // =========================
+            // 1️⃣ Product LUB GalleryItem
+            // =========================
+
+            string targetType;
+            string name;
+            decimal price;
+            string? imageUrl;
+
+            var product = await _db.Products
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Id == request.ProductId, ct);
+
+            if (product != null)
+            {
+                targetType = "Product";
+                name = product.Name;
+                price = product.Price;
+                imageUrl = product.ImageUrl;
+            }
+            else
+            {
+                var galleryItem = await _db.GalleryItems
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(g => g.Id == request.ProductId, ct);
+
+                if (galleryItem == null)
+                    return NotFound("Produkt ani arcydzieło nie istnieje.");
+
+                targetType = "GalleryItem";
+                name = galleryItem.Title;
+                price = galleryItem.Price;
+                imageUrl = galleryItem.ImageUrl;
+            }
+
+            // =========================
+            // 2️⃣ ORDER (prosty koszyk)
+            // =========================
+
             var order = new Order
             {
                 Id = Guid.NewGuid(),
                 CreatedAt = DateTime.UtcNow,
-                TotalAmount = product.Price * request.Quantity
+                TotalAmount = price * request.Quantity
             };
 
             _db.Orders.Add(order);
             await _db.SaveChangesAsync(ct);
 
-            // 3️⃣ UTWÓRZ ORDER ITEM
+            // =========================
+            // 3️⃣ ORDER ITEM
+            // =========================
+
             var item = new OrderItem
             {
                 Id = Guid.NewGuid(),
                 OrderId = order.Id,
                 Source = request.UserId.HasValue ? "USER" : "GUEST",
-                Name = product.Name,
-                Price = product.Price,
-                Quantity = request.Quantity,
-                ImageUrl = product.ImageUrl
+                Name = name,
+                Price = price,
+                Quantity = (int)request.Quantity,
+                ImageUrl = imageUrl
             };
 
             _db.OrderItems.Add(item);
             await _db.SaveChangesAsync(ct);
 
+            // =========================
             // 4️⃣ ACTIVITY LOG
+            // =========================
+
             await _activityLog.LogAsync(
                 ActivityEventType.CartItemAdded,
                 userId: request.UserId,
-                targetType: "Product",
-                targetId: product.Id.ToString(),
-                message: "Dodano produkt do koszyka",
+                targetType: targetType,
+                targetId: request.ProductId.ToString(),
+                message: "Dodano do koszyka",
                 data: new
                 {
-                    product.Name,
+                    name,
                     quantity = request.Quantity,
                     orderId = order.Id
                 },

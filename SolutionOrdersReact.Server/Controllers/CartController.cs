@@ -21,6 +21,9 @@ namespace SolutionOrdersReact.Server.Controllers
             _activityLog = activityLog;
         }
 
+        // =====================================================
+        // POST /api/cart/add
+        // =====================================================
         [HttpPost("add")]
         public async Task<IActionResult> AddToCart(
             [FromBody] AddToCartRequestDto request,
@@ -67,7 +70,7 @@ namespace SolutionOrdersReact.Server.Controllers
             }
 
             // =========================
-            // 2️⃣ ORDER (prosty koszyk)
+            // 2️⃣ ORDER (techniczny koszyk)
             // =========================
 
             var order = new Order
@@ -122,6 +125,30 @@ namespace SolutionOrdersReact.Server.Controllers
                 orderId = order.Id,
                 itemId = item.Id
             });
+        }
+
+        // =====================================================
+        // GET /api/cart
+        // =====================================================
+        [HttpGet]
+        public async Task<IActionResult> GetCart(
+            CancellationToken ct)
+        {
+            var items = await _db.OrderItems
+                .AsNoTracking()
+                .OrderByDescending(i => i.Id)
+                .Select(i => new
+                {
+                    id = i.Id,
+                    name = i.Name,
+                    price = i.Price,
+                    quantity = i.Quantity,
+                    imageUrl = i.ImageUrl,
+                    source = i.Source
+                })
+                .ToListAsync(ct);
+
+            return Ok(items);
         }
     }
 }

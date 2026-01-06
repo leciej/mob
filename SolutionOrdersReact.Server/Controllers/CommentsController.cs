@@ -21,9 +21,12 @@ namespace SolutionOrdersReact.Server.Controllers
             _activityLog = activityLog;
         }
 
-        // GET: api/products/{productId}/comments
+        // =========================
+        // GET COMMENTS
+        // =========================
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CommentDto>>> GetComments(Guid productId)
+        public async Task<ActionResult<IEnumerable<CommentDto>>> GetComments(
+            Guid productId)
         {
             var comments = await _context.Comments
                 .Include(c => c.User)
@@ -32,7 +35,9 @@ namespace SolutionOrdersReact.Server.Controllers
                 .Select(c => new CommentDto
                 {
                     Id = c.Id,
-                    Author = c.User.Login,
+                    Author = c.User.Role == "GUEST"
+                        ? "Gość"
+                        : c.User.Login,
                     Text = c.Text,
                     CreatedAt = c.CreatedAt
                 })
@@ -41,7 +46,9 @@ namespace SolutionOrdersReact.Server.Controllers
             return Ok(comments);
         }
 
-        // POST: api/products/{productId}/comments
+        // =========================
+        // ADD COMMENT
+        // =========================
         [HttpPost]
         public async Task<ActionResult<CommentDto>> AddComment(
             Guid productId,
@@ -68,35 +75,30 @@ namespace SolutionOrdersReact.Server.Controllers
             _context.Comments.Add(comment);
             await _context.SaveChangesAsync();
 
-            // ✅ ACTIVITY LOG: CommentAdded
             await _activityLog.LogAsync(
                 ActivityEventType.CommentAdded,
                 userId: user.Id,
                 targetType: "Product",
                 targetId: productId.ToString(),
                 message: "Dodano komentarz",
-                data: new
-                {
-                    commentId = comment.Id,
-                    textLength = comment.Text.Length
-                }
+                data: new { commentId = comment.Id }
             );
 
-            return CreatedAtAction(
-                nameof(GetComments),
-                new { productId },
-                new CommentDto
-                {
-                    Id = comment.Id,
-                    Author = user.Login,
-                    Text = comment.Text,
-                    CreatedAt = comment.CreatedAt
-                }
-            );
+            return Ok(new CommentDto
+            {
+                Id = comment.Id,
+                Author = user.Role == "GUEST"
+                    ? "Gość"
+                    : user.Login,
+                Text = comment.Text,
+                CreatedAt = comment.CreatedAt
+            });
         }
     }
 
-    // 🔽 request do POST
+    // =========================
+    // REQUEST DTO
+    // =========================
     public class CreateCommentRequest
     {
         public int UserId { get; set; }

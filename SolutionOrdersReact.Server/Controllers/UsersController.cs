@@ -17,11 +17,52 @@ namespace SolutionOrdersReact.Server.Controllers
         }
 
         // =========================
-        // REGISTER (USER)
+        // LOGIN AS GUEST (NO SELECT)
+        // =========================
+        [HttpPost("guest")]
+        public async Task<ActionResult<UserDto>> GuestLogin()
+        {
+            var guest = new User
+            {
+                Name = "Gość",
+                Surname = "",
+                Login = $"GUEST_{Guid.NewGuid():N}",
+                Email = null,
+                Password = null,
+                Role = "GUEST"
+            };
+
+            _db.Users.Add(guest);
+            await _db.SaveChangesAsync();
+
+            return Ok(Map(guest));
+        }
+
+        // =========================
+        // LOGIN USER / ADMIN
+        // =========================
+        [HttpPost("login")]
+        public async Task<ActionResult<UserDto>> Login(LoginUserRequestDto request)
+        {
+            var user = await _db.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u =>
+                    u.Password != null &&
+                    (u.Login == request.LoginOrEmail ||
+                     u.Email == request.LoginOrEmail) &&
+                    u.Password == request.Password);
+
+            if (user == null)
+                return Unauthorized();
+
+            return Ok(Map(user));
+        }
+
+        // =========================
+        // REGISTER
         // =========================
         [HttpPost("register")]
-        public async Task<ActionResult<UserDto>> Register(
-            RegisterUserRequestDto request)
+        public async Task<ActionResult<UserDto>> Register(RegisterUserRequestDto request)
         {
             var exists = await _db.Users.AnyAsync(u =>
                 u.Login == request.Login ||
@@ -43,71 +84,17 @@ namespace SolutionOrdersReact.Server.Controllers
             _db.Users.Add(user);
             await _db.SaveChangesAsync();
 
-            return new UserDto
-            {
-                Id = user.Id,
-                Name = user.Name,
-                Surname = user.Surname,
-                Login = user.Login,
-                Email = user.Email,
-                Role = user.Role
-            };
+            return Ok(Map(user));
         }
 
-        // =========================
-        // LOGIN (USER / ADMIN)
-        // =========================
-        [HttpPost("login")]
-        public async Task<ActionResult<UserDto>> Login(
-            LoginUserRequestDto request)
+        private static UserDto Map(User u) => new UserDto
         {
-            var user = await _db.Users.FirstOrDefaultAsync(u =>
-                (u.Login == request.LoginOrEmail ||
-                 u.Email == request.LoginOrEmail)
-                && u.Password == request.Password);
-
-            if (user == null)
-                return Unauthorized();
-
-            return new UserDto
-            {
-                Id = user.Id,
-                Name = user.Name,
-                Surname = user.Surname,
-                Login = user.Login,
-                Email = user.Email,
-                Role = user.Role
-            };
-        }
-
-        // =========================
-        // GUEST LOGIN (BACKEND)
-        // =========================
-        [HttpPost("guest")]
-        public async Task<ActionResult<UserDto>> GuestLogin()
-        {
-            var guest = new User
-            {
-                Name = "Gość",
-                Surname = "",
-                Login = $"guest_{Guid.NewGuid()}",
-                Email = "",
-                Password = "",
-                Role = "GUEST"
-            };
-
-            _db.Users.Add(guest);
-            await _db.SaveChangesAsync();
-
-            return new UserDto
-            {
-                Id = guest.Id,
-                Name = guest.Name,
-                Surname = guest.Surname,
-                Login = guest.Login,
-                Email = guest.Email,
-                Role = guest.Role
-            };
-        }
+            Id = u.Id,
+            Name = u.Name ?? "",
+            Surname = u.Surname ?? "",
+            Login = u.Login,
+            Email = u.Email,
+            Role = u.Role
+        };
     }
 }

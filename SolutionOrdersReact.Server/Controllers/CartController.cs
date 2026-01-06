@@ -23,14 +23,23 @@ namespace SolutionOrdersReact.Server.Controllers
 
         // =====================================================
         // POST /api/cart/add
+        // body: { productId, quantity, userId? }
         // =====================================================
         [HttpPost("add")]
         public async Task<IActionResult> AddToCart(
             [FromBody] AddToCartRequestDto request,
             CancellationToken ct)
         {
+            if (request.ProductId == Guid.Empty)
+                return BadRequest("Brak ProductId.");
+
             if (request.Quantity < 1)
                 return BadRequest("Ilość musi być >= 1.");
+
+            // DTO ma decimal, ale w koszyku trzymamy int
+            var qty = (int)request.Quantity;
+            if (qty < 1)
+                return BadRequest("Ilość musi być >= 1 (liczba całkowita).");
 
             string targetType;
             string name;
@@ -40,7 +49,6 @@ namespace SolutionOrdersReact.Server.Controllers
             // =========================
             // Product LUB GalleryItem
             // =========================
-
             var product = await _db.Products
                 .AsNoTracking()
                 .FirstOrDefaultAsync(p => p.Id == request.ProductId, ct);
@@ -70,7 +78,6 @@ namespace SolutionOrdersReact.Server.Controllers
             // =========================
             // CartItem (KOSZYK)
             // =========================
-
             var existing = await _db.CartItems.FirstOrDefaultAsync(
                 c =>
                     c.UserId == request.UserId &&
@@ -81,7 +88,7 @@ namespace SolutionOrdersReact.Server.Controllers
 
             if (existing != null)
             {
-                existing.Quantity += (int)request.Quantity;
+                existing.Quantity += qty;
             }
             else
             {
@@ -93,7 +100,7 @@ namespace SolutionOrdersReact.Server.Controllers
                     TargetId = request.ProductId,
                     Name = name,
                     Price = price,
-                    Quantity = (int)request.Quantity,
+                    Quantity = qty,
                     ImageUrl = imageUrl,
                     CreatedAt = DateTime.UtcNow
                 };
@@ -102,10 +109,6 @@ namespace SolutionOrdersReact.Server.Controllers
             }
 
             await _db.SaveChangesAsync(ct);
-
-            // =========================
-            // ACTIVITY LOG
-            // =========================
 
             await _activityLog.LogAsync(
                 ActivityEventType.CartItemAdded,
@@ -116,7 +119,7 @@ namespace SolutionOrdersReact.Server.Controllers
                 data: new
                 {
                     name,
-                    quantity = request.Quantity
+                    quantity = qty
                 },
                 ct: ct
             );
@@ -135,23 +138,19 @@ namespace SolutionOrdersReact.Server.Controllers
             var query = _db.CartItems.AsNoTracking();
 
             if (userId.HasValue)
-            {
                 query = query.Where(c => c.UserId == userId.Value);
-            }
 
             var items = await query
                 .OrderByDescending(c => c.CreatedAt)
                 .Select(c => new
                 {
                     cartItemId = c.Id,
-                    id = c.TargetId,
+                    id = c.TargetId, // id produktu/arcydzieła
                     name = c.Name,
                     price = c.Price,
                     quantity = c.Quantity,
                     imageUrl = c.ImageUrl,
-                    source = c.TargetType == "Product"
-                        ? "PRODUCTS"
-                        : "GALLERY"
+                    source = c.TargetType == "Product" ? "PRODUCTS" : "GALLERY"
                 })
                 .ToListAsync(ct);
 
@@ -159,7 +158,7 @@ namespace SolutionOrdersReact.Server.Controllers
         }
 
         // =====================================================
-        // PATCH /api/cart/{id}/quantity
+        // PATCH /api/cart/{id}/quantity?delta=+1|-1
         // =====================================================
         [HttpPatch("{id:guid}/quantity")]
         public async Task<IActionResult> ChangeQuantity(
@@ -167,6 +166,9 @@ namespace SolutionOrdersReact.Server.Controllers
             [FromQuery] int delta,
             CancellationToken ct)
         {
+            if (delta == 0)
+                return BadRequest("delta nie może być 0.");
+
             var item = await _db.CartItems
                 .FirstOrDefaultAsync(c => c.Id == id, ct);
 
@@ -178,9 +180,37 @@ namespace SolutionOrdersReact.Server.Controllers
             if (item.Quantity <= 0)
             {
                 _db.CartItems.Remove(item);
+
+                await _db.SaveChangesAsync(ct);
+
+                await _activityLog.LogAsync(
+                    ActivityEventType.CartItemRemoved,
+                    userId: item.UserId,
+                    targetType: item.TargetType,
+                    targetId: item.TargetId.ToString(),
+                    message: "Usunięto pozycję z koszyka (quantity <= 0)",
+                    data: new { delta },
+                    ct: ct
+                );
+
+                return NoContent();
             }
 
             await _db.SaveChangesAsync(ct);
+
+            await _activityLog.LogAsync(
+                ActivityEventType.CartItemQuantityChanged,
+                userId: item.UserId,
+                targetType: item.TargetType,
+                targetId: item.TargetId.ToString(),
+                message: "Zmieniono ilość w koszyku",
+                data: new
+                {
+                    delta,
+                    newQuantity = item.Quantity
+                },
+                ct: ct
+            );
 
             return NoContent();
         }
@@ -202,11 +232,21 @@ namespace SolutionOrdersReact.Server.Controllers
             _db.CartItems.Remove(item);
             await _db.SaveChangesAsync(ct);
 
+            await _activityLog.LogAsync(
+                ActivityEventType.CartItemRemoved,
+                userId: item.UserId,
+                targetType: item.TargetType,
+                targetId: item.TargetId.ToString(),
+                message: "Usunięto pozycję z koszyka",
+                data: new { cartItemId = id },
+                ct: ct
+            );
+
             return NoContent();
         }
 
         // =====================================================
-        // DELETE /api/cart/clear
+        // DELETE /api/cart/clear?userId=1
         // =====================================================
         [HttpDelete("clear")]
         public async Task<IActionResult> ClearCart(
@@ -216,12 +256,22 @@ namespace SolutionOrdersReact.Server.Controllers
             var query = _db.CartItems.AsQueryable();
 
             if (userId.HasValue)
-            {
                 query = query.Where(c => c.UserId == userId.Value);
-            }
+
+            var removedCount = await query.CountAsync(ct);
 
             _db.CartItems.RemoveRange(query);
             await _db.SaveChangesAsync(ct);
+
+            await _activityLog.LogAsync(
+                ActivityEventType.CartCleared,
+                userId: userId,
+                targetType: "Cart",
+                targetId: userId?.ToString(),
+                message: "Wyczyszczono koszyk",
+                data: new { removedCount },
+                ct: ct
+            );
 
             return NoContent();
         }

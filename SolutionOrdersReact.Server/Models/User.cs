@@ -6,13 +6,15 @@ namespace SolutionOrdersReact.Server.Models
     {
         public int Id { get; set; }
 
-        public string Name { get; set; } = null!;
-        public string Surname { get; set; } = null!;
-        public string Login { get; set; } = null!;
-        public string Email { get; set; } = null!;
-        public string Password { get; set; } = null!;
+        // 🔥 MUSZĄ BYĆ NULLABLE
+        public string? Name { get; set; }
+        public string? Surname { get; set; }
 
-        // ROLE: GUEST | USER | ADMIN
+        public string Login { get; set; } = null!;
+
+        public string? Email { get; set; }
+        public string? Password { get; set; }
+
         public string Role { get; set; } = "USER";
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

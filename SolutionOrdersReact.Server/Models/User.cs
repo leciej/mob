@@ -6,7 +6,7 @@ namespace SolutionOrdersReact.Server.Models
     {
         public int Id { get; set; }
 
-        // 🔥 MUSZĄ BYĆ NULLABLE
+        // GUEST MOŻE MIEĆ NULL
         public string? Name { get; set; }
         public string? Surname { get; set; }
 
@@ -15,6 +15,7 @@ namespace SolutionOrdersReact.Server.Models
         public string? Email { get; set; }
         public string? Password { get; set; }
 
+        // GUEST | USER | ADMIN
         public string Role { get; set; } = "USER";
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

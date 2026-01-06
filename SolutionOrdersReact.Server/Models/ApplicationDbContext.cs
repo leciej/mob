@@ -12,25 +12,19 @@ namespace SolutionOrdersReact.Server.Models
         public DbSet<Worker> Workers { get; set; }
         public DbSet<Item> Items { get; set; }
 
-        // ORDERS = ZAMÓWIENIA (PO KLIKNIĘCIU "ZAMÓW")
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
 
-        // KATALOG
         public DbSet<Product> Products { get; set; }
         public DbSet<GalleryItem> GalleryItems { get; set; }
 
-        // SOCIAL
         public DbSet<Comment> Comments { get; set; }
         public DbSet<GalleryRating> GalleryRatings { get; set; }
 
-        // USERS
         public DbSet<User> Users { get; set; }
 
-        // 🛒 KOSZYK (PRZED ZAMÓWIENIEM)
         public DbSet<CartItem> CartItems { get; set; }
 
-        // 📜 ACTIVITY LOG
         public DbSet<ActivityLog> ActivityLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -116,15 +110,10 @@ namespace SolutionOrdersReact.Server.Models
                 entity.Property(e => e.CreatedAt).IsRequired();
             });
 
-            /* =========================
-               COMMENTS
-               ========================= */
             modelBuilder.Entity<Comment>(entity =>
             {
                 entity.HasKey(e => e.Id);
-
                 entity.Property(e => e.Text).IsRequired();
-
                 entity.Property(e => e.CreatedAt)
                     .HasDefaultValueSql("SYSUTCDATETIME()");
 
@@ -134,15 +123,10 @@ namespace SolutionOrdersReact.Server.Models
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
-            /* =========================
-               GALLERY RATINGS ⭐
-               ========================= */
             modelBuilder.Entity<GalleryRating>(entity =>
             {
                 entity.HasKey(e => e.Id);
-
                 entity.Property(e => e.Value).IsRequired();
-
                 entity.Property(e => e.CreatedAt)
                     .HasDefaultValueSql("SYSUTCDATETIME()");
 
@@ -160,26 +144,41 @@ namespace SolutionOrdersReact.Server.Models
                     .IsUnique();
             });
 
+            // ✅ FIX: USER (GUEST SAFE)
             modelBuilder.Entity<User>(entity =>
             {
                 entity.HasKey(e => e.Id);
 
-                entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
-                entity.Property(e => e.Surname).IsRequired().HasMaxLength(200);
-                entity.Property(e => e.Login).IsRequired().HasMaxLength(100);
-                entity.Property(e => e.Email).IsRequired().HasMaxLength(200);
-                entity.Property(e => e.Password).IsRequired();
+                entity.Property(e => e.Name)
+                    .HasMaxLength(200);
+
+                entity.Property(e => e.Surname)
+                    .HasMaxLength(200);
+
+                entity.Property(e => e.Login)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
+                entity.Property(e => e.Email)
+                    .HasMaxLength(200);
+
+                entity.Property(e => e.Password);
+
+                entity.Property(e => e.Role)
+                    .IsRequired()
+                    .HasMaxLength(20);
 
                 entity.Property(e => e.CreatedAt)
                     .HasDefaultValueSql("SYSUTCDATETIME()");
 
-                entity.HasIndex(e => e.Login).IsUnique();
-                entity.HasIndex(e => e.Email).IsUnique();
+                entity.HasIndex(e => e.Login)
+                    .IsUnique();
+
+                entity.HasIndex(e => e.Email)
+                    .IsUnique()
+                    .HasFilter("[Email] IS NOT NULL");
             });
 
-            /* =========================
-               🛒 CART ITEMS
-               ========================= */
             modelBuilder.Entity<CartItem>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -209,9 +208,6 @@ namespace SolutionOrdersReact.Server.Models
                 entity.HasIndex(e => new { e.UserId, e.TargetType, e.TargetId });
             });
 
-            /* =========================
-               📜 ACTIVITY LOG / EVENT LOG
-               ========================= */
             modelBuilder.Entity<ActivityLog>(entity =>
             {
                 entity.HasKey(e => e.Id);

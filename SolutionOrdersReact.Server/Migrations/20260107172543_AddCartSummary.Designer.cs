@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SolutionOrdersReact.Server.Models;
 
@@ -11,9 +12,11 @@ using SolutionOrdersReact.Server.Models;
 namespace SolutionOrdersReact.Server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260107172543_AddCartSummary")]
+    partial class AddCartSummary
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -406,17 +409,12 @@ namespace SolutionOrdersReact.Server.Migrations
                     b.Property<decimal>("TotalAmount")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int?>("UserId")
-                        .HasColumnType("int");
-
                     b.Property<int?>("WorkerIdWorker")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ClientIdClient");
-
-                    b.HasIndex("UserId");
 
                     b.HasIndex("WorkerIdWorker");
 
@@ -697,21 +695,13 @@ namespace SolutionOrdersReact.Server.Migrations
 
             modelBuilder.Entity("SolutionOrdersReact.Server.Models.Order", b =>
                 {
-                    b.HasOne("SolutionOrdersReact.Server.Models.Client", "Client")
+                    b.HasOne("SolutionOrdersReact.Server.Models.Client", null)
                         .WithMany("Orders")
                         .HasForeignKey("ClientIdClient");
-
-                    b.HasOne("SolutionOrdersReact.Server.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
 
                     b.HasOne("SolutionOrdersReact.Server.Models.Worker", null)
                         .WithMany("Orders")
                         .HasForeignKey("WorkerIdWorker");
-
-                    b.Navigation("Client");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("SolutionOrdersReact.Server.Models.OrderItem", b =>

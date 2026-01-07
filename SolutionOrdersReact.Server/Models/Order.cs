@@ -1,15 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace SolutionOrdersReact.Server.Models;
-
-public class Order
+namespace SolutionOrdersReact.Server.Models
 {
-    public Guid Id { get; set; }
-    public Guid? ClientId { get; set; }
+    public class Order
+    {
+        public Guid Id { get; set; }
 
-    public decimal TotalAmount { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        // 🏢 Klient (np. B2B / firma / legacy)
+        public Guid? ClientId { get; set; }
 
-    public List<OrderItem> Items { get; set; } = new();
+        // 👤 Użytkownik aplikacji (USER / GUEST)
+        public int? UserId { get; set; }
+
+        public decimal TotalAmount { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        // 📦 Pozycje zamówienia
+        public List<OrderItem> Items { get; set; } = new();
+
+        // relacje
+        public User? User { get; set; }
+        public Client? Client { get; set; }
+    }
 }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System;
+using SolutionOrdersReact.Server.Models;
 
 namespace SolutionOrdersReact.Server.Models
 {
@@ -24,6 +25,10 @@ namespace SolutionOrdersReact.Server.Models
         public DbSet<User> Users { get; set; }
 
         public DbSet<CartItem> CartItems { get; set; }
+
+        // 🆕 SNAPSHOT ZAMÓWIENIA
+        public DbSet<CartOrderSnapshot> CartOrderSnapshots { get; set; }
+        public DbSet<CartOrderSnapshotItem> CartOrderSnapshotItems { get; set; }
 
         public DbSet<ActivityLog> ActivityLogs { get; set; }
 
@@ -144,36 +149,18 @@ namespace SolutionOrdersReact.Server.Models
                     .IsUnique();
             });
 
-            // ✅ FIX: USER (GUEST SAFE)
             modelBuilder.Entity<User>(entity =>
             {
                 entity.HasKey(e => e.Id);
-
-                entity.Property(e => e.Name)
-                    .HasMaxLength(200);
-
-                entity.Property(e => e.Surname)
-                    .HasMaxLength(200);
-
-                entity.Property(e => e.Login)
-                    .IsRequired()
-                    .HasMaxLength(100);
-
-                entity.Property(e => e.Email)
-                    .HasMaxLength(200);
-
+                entity.Property(e => e.Name).HasMaxLength(200);
+                entity.Property(e => e.Surname).HasMaxLength(200);
+                entity.Property(e => e.Login).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.Email).HasMaxLength(200);
                 entity.Property(e => e.Password);
-
-                entity.Property(e => e.Role)
-                    .IsRequired()
-                    .HasMaxLength(20);
-
+                entity.Property(e => e.Role).IsRequired().HasMaxLength(20);
                 entity.Property(e => e.CreatedAt)
                     .HasDefaultValueSql("SYSUTCDATETIME()");
-
-                entity.HasIndex(e => e.Login)
-                    .IsUnique();
-
+                entity.HasIndex(e => e.Login).IsUnique();
                 entity.HasIndex(e => e.Email)
                     .IsUnique()
                     .HasFilter("[Email] IS NOT NULL");
@@ -182,14 +169,51 @@ namespace SolutionOrdersReact.Server.Models
             modelBuilder.Entity<CartItem>(entity =>
             {
                 entity.HasKey(e => e.Id);
+                entity.Property(e => e.TargetType).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.Name).HasMaxLength(300).IsRequired();
+                entity.Property(e => e.Price).HasColumnType("decimal(18,2)").IsRequired();
+                entity.Property(e => e.Quantity).IsRequired();
+                entity.Property(e => e.ImageUrl).HasMaxLength(500);
+                entity.Property(e => e.CreatedAt)
+                    .HasDefaultValueSql("SYSUTCDATETIME()");
+                entity.HasIndex(e => e.UserId);
+                entity.HasIndex(e => new { e.UserId, e.TargetType, e.TargetId });
+            });
 
-                entity.Property(e => e.TargetType)
-                    .HasMaxLength(50)
+            // =========================
+            // 🆕 CART ORDER SNAPSHOT
+            // =========================
+            modelBuilder.Entity<CartOrderSnapshot>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.TotalValue)
+                    .HasColumnType("decimal(18,2)")
                     .IsRequired();
+
+                entity.Property(e => e.TotalQuantity)
+                    .IsRequired();
+
+                entity.Property(e => e.CreatedAt)
+                    .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                entity.HasOne(e => e.User)
+                    .WithMany()
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<CartOrderSnapshotItem>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.Source)
+                    .IsRequired()
+                    .HasMaxLength(20);
 
                 entity.Property(e => e.Name)
-                    .HasMaxLength(300)
-                    .IsRequired();
+                    .IsRequired()
+                    .HasMaxLength(300);
 
                 entity.Property(e => e.Price)
                     .HasColumnType("decimal(18,2)")
@@ -201,54 +225,33 @@ namespace SolutionOrdersReact.Server.Models
                 entity.Property(e => e.ImageUrl)
                     .HasMaxLength(500);
 
-                entity.Property(e => e.CreatedAt)
-                    .HasDefaultValueSql("SYSUTCDATETIME()");
-
-                entity.HasIndex(e => e.UserId);
-                entity.HasIndex(e => new { e.UserId, e.TargetType, e.TargetId });
+                entity.HasOne(e => e.CartOrderSnapshot)
+                    .WithMany(e => e.Items)
+                    .HasForeignKey(e => e.CartOrderSnapshotId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<ActivityLog>(entity =>
             {
                 entity.HasKey(e => e.Id);
-
                 entity.Property(e => e.EventType)
                     .HasConversion<string>()
                     .HasMaxLength(100)
                     .IsRequired();
-
                 entity.Property(e => e.CreatedAt)
                     .HasDefaultValueSql("SYSUTCDATETIME()");
-
-                entity.Property(e => e.TargetType)
-                    .HasMaxLength(64);
-
-                entity.Property(e => e.TargetId)
-                    .HasMaxLength(64);
-
-                entity.Property(e => e.Message)
-                    .HasMaxLength(500);
-
-                entity.Property(e => e.IpAddress)
-                    .HasMaxLength(64);
-
-                entity.Property(e => e.UserAgent)
-                    .HasMaxLength(256);
-
-                entity.Property(e => e.Path)
-                    .HasMaxLength(256);
-
-                entity.Property(e => e.CorrelationId)
-                    .HasMaxLength(64);
+                entity.Property(e => e.TargetType).HasMaxLength(64);
+                entity.Property(e => e.TargetId).HasMaxLength(64);
+                entity.Property(e => e.Message).HasMaxLength(500);
+                entity.Property(e => e.IpAddress).HasMaxLength(64);
+                entity.Property(e => e.UserAgent).HasMaxLength(256);
+                entity.Property(e => e.Path).HasMaxLength(256);
+                entity.Property(e => e.CorrelationId).HasMaxLength(64);
 
                 entity.HasOne(e => e.User)
                     .WithMany()
                     .HasForeignKey(e => e.UserId)
                     .OnDelete(DeleteBehavior.SetNull);
-
-                entity.HasIndex(e => e.CreatedAt);
-                entity.HasIndex(e => new { e.UserId, e.CreatedAt });
-                entity.HasIndex(e => new { e.TargetType, e.TargetId, e.CreatedAt });
             });
 
             SeedData(modelBuilder);

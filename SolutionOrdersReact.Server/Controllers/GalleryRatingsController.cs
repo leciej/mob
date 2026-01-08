@@ -29,12 +29,18 @@ namespace SolutionOrdersReact.Server.Controllers
         {
             var ratingsQuery = _context.GalleryRatings
                 .AsNoTracking()
-                .Where(r => r.GalleryItemId == galleryItemId && r.UserId != null); // ⬅️ ignoruj stock
+                .Where(r =>
+                    r.GalleryItemId == galleryItemId &&
+                    r.UserId != null
+                );
 
             var votes = await ratingsQuery.CountAsync();
 
             var average = votes > 0
-                ? Math.Round(await ratingsQuery.AverageAsync(r => r.Value), 1)
+                ? Math.Round(
+                    await ratingsQuery.AverageAsync(r => r.Value),
+                    1
+                )
                 : 0;
 
             int? myRating = null;
@@ -63,21 +69,22 @@ namespace SolutionOrdersReact.Server.Controllers
         )
         {
             if (request.Value < 1 || request.Value > 5)
-                return BadRequest();
+                return BadRequest("Rating value must be between 1 and 5.");
+
+            // 🔐 userId pochodzi z FE (bo nie ma JWT)
+            var userExists = await _context.Users
+                .AsNoTracking()
+                .AnyAsync(u => u.Id == request.UserId);
+
+            if (!userExists)
+                return BadRequest("User does not exist.");
 
             var galleryExists = await _context.GalleryItems
                 .AsNoTracking()
                 .AnyAsync(g => g.Id == galleryItemId);
 
             if (!galleryExists)
-                return NotFound();
-
-            var userExists = await _context.Users
-                .AsNoTracking()
-                .AnyAsync(u => u.Id == request.UserId);
-
-            if (!userExists)
-                return BadRequest();
+                return NotFound("Gallery item not found.");
 
             var existingRating = await _context.GalleryRatings
                 .FirstOrDefaultAsync(r =>
@@ -106,7 +113,7 @@ namespace SolutionOrdersReact.Server.Controllers
 
             await _context.SaveChangesAsync();
 
-            // ✅ ACTIVITY LOG
+            // ACTIVITY LOG
             await _activityLog.LogAsync(
                 isCreate
                     ? ActivityEventType.RatingCreated

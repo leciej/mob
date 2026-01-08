@@ -17,7 +17,7 @@ namespace SolutionOrdersReact.Server.Controllers
         }
 
         // =========================
-        // LOGIN AS GUEST (NO SELECT)
+        // LOGIN AS GUEST
         // =========================
         [HttpPost("guest")]
         public async Task<ActionResult<UserDto>> GuestLogin()
@@ -85,6 +85,48 @@ namespace SolutionOrdersReact.Server.Controllers
             await _db.SaveChangesAsync();
 
             return Ok(Map(user));
+        }
+
+        // =========================
+        // USER STATS  <<< TO JEST KLUCZ
+        // =========================
+        [HttpGet("{userId:int}/stats")]
+        public async Task<ActionResult<UserStatsDto>> GetUserStats(int userId)
+        {
+            var userExists = await _db.Users.AnyAsync(u => u.Id == userId);
+            if (!userExists)
+                return NotFound();
+
+            var purchasedCount = await _db.Orders
+                .Where(o => o.UserId == userId)
+                .SelectMany(o => o.Items)
+                .CountAsync();
+
+            var totalSpent = await _db.Orders
+                .Where(o => o.UserId == userId)
+                .SelectMany(o => o.Items)
+                .SumAsync(i => i.Price * i.Quantity);
+
+            var ratingsQuery = _db.GalleryRatings
+                .Where(r => r.UserId == userId);
+
+            var ratedCount = await ratingsQuery.CountAsync();
+
+            var averageRating = ratedCount > 0
+                ? Math.Round(await ratingsQuery.AverageAsync(r => r.Value), 1)
+                : 0;
+
+            var commentsCount = await _db.Comments
+                .CountAsync(c => c.UserId == userId);
+
+            return Ok(new UserStatsDto
+            {
+                PurchasedCount = purchasedCount,
+                TotalSpent = totalSpent,
+                RatedCount = ratedCount,
+                AverageRating = averageRating,
+                CommentsCount = commentsCount
+            });
         }
 
         private static UserDto Map(User u) => new UserDto

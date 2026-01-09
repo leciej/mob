@@ -32,13 +32,13 @@ namespace SolutionOrdersReact.Server.Handlers.Items
 
             _logger.LogInformation("Usuwanie produktu ID: {IdItem}", request.IdItem);
 
-            // Soft delete - tylko ustawiamy IsActive = false
+            
             item.IsActive = false;
             await _context.SaveChangesAsync(cancellationToken);
 
-            // Lub hard delete:
-            // _context.Items.Remove(item);
-            // await _context.SaveChangesAsync(cancellationToken);
+            
+            
+            
 
             _logger.LogInformation("Usunięto produkt ID: {IdItem}", request.IdItem);
 

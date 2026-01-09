@@ -8,12 +8,12 @@ namespace SolutionOrdersReact.Server.Dto
         [Required]
         public Guid ProductId { get; set; }
 
-        // OrderItem.Quantity jest int → DTO też int
+        
         [Range(1, int.MaxValue)]
         public int Quantity { get; set; } = 1;
 
-        // USER → wypełnione
-        // GUEST → null
+        
+        
         public int? UserId { get; set; }
     }
 }

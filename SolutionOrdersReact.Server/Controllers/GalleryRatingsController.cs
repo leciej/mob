@@ -20,7 +20,7 @@ namespace SolutionOrdersReact.Server.Controllers
             _activityLog = activityLog;
         }
 
-        // GET /api/gallery/{galleryItemId}/ratings?userId=1
+        
         [HttpGet]
         public async Task<ActionResult<GalleryRatingSummaryDto>> GetRatings(
             Guid galleryItemId,
@@ -61,7 +61,7 @@ namespace SolutionOrdersReact.Server.Controllers
             });
         }
 
-        // POST /api/gallery/{galleryItemId}/ratings
+        
         [HttpPost]
         public async Task<IActionResult> AddOrUpdateRating(
             Guid galleryItemId,
@@ -71,7 +71,7 @@ namespace SolutionOrdersReact.Server.Controllers
             if (request.Value < 1 || request.Value > 5)
                 return BadRequest("Rating value must be between 1 and 5.");
 
-            // 🔐 userId pochodzi z FE (bo nie ma JWT)
+            
             var userExists = await _context.Users
                 .AsNoTracking()
                 .AnyAsync(u => u.Id == request.UserId);
@@ -113,7 +113,7 @@ namespace SolutionOrdersReact.Server.Controllers
 
             await _context.SaveChangesAsync();
 
-            // ACTIVITY LOG
+            
             await _activityLog.LogAsync(
                 isCreate
                     ? ActivityEventType.RatingCreated

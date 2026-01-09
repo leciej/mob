@@ -21,9 +21,9 @@ namespace SolutionOrdersReact.Server.Controllers
             _activityLog = activityLog;
         }
 
-        // =========================
-        // GET COMMENTS
-        // =========================
+        
+        
+        
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CommentDto>>> GetComments(
             Guid productId)
@@ -46,9 +46,9 @@ namespace SolutionOrdersReact.Server.Controllers
             return Ok(comments);
         }
 
-        // =========================
-        // ADD COMMENT
-        // =========================
+        
+        
+        
         [HttpPost]
         public async Task<ActionResult<CommentDto>> AddComment(
             Guid productId,
@@ -96,9 +96,9 @@ namespace SolutionOrdersReact.Server.Controllers
         }
     }
 
-    // =========================
-    // REQUEST DTO
-    // =========================
+    
+    
+    
     public class CreateCommentRequest
     {
         public int UserId { get; set; }

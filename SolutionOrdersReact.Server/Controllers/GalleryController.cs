@@ -15,7 +15,7 @@ namespace SolutionOrdersReact.Server.Controllers
             _context = context;
         }
 
-        // GET: /api/gallery
+        
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -26,7 +26,7 @@ namespace SolutionOrdersReact.Server.Controllers
             return Ok(items);
         }
 
-        // GET: /api/gallery/{id}
+        
         [HttpGet("{id:guid}")]
         public async Task<IActionResult> GetById(Guid id)
         {
@@ -39,13 +39,13 @@ namespace SolutionOrdersReact.Server.Controllers
             return Ok(item);
         }
 
-        // POST: /api/gallery
+        
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] GalleryItemRequest dto)
         {
             var item = new GalleryItem
             {
-                Id = Guid.NewGuid(),          // ✅ GUID, nie string
+                Id = Guid.NewGuid(),          
                 Title = dto.Title,
                 Artist = dto.Artist,
                 Price = dto.Price,
@@ -59,7 +59,7 @@ namespace SolutionOrdersReact.Server.Controllers
             return Ok(item);
         }
 
-        // PUT: /api/gallery/{id}
+        
         [HttpPut("{id:guid}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] GalleryItemRequest dto)
         {
@@ -79,7 +79,7 @@ namespace SolutionOrdersReact.Server.Controllers
             return NoContent();
         }
 
-        // DELETE: /api/gallery/{id}
+        
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Delete(Guid id)
         {

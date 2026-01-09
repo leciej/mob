@@ -21,9 +21,6 @@ namespace SolutionOrdersReact.Server.Controllers
             _activityLog = activityLog;
         }
 
-        // =====================================================
-        // POST /api/cart/add
-        // =====================================================
         [HttpPost("add")]
         public async Task<IActionResult> AddToCart(
             [FromBody] AddToCartRequestDto request,
@@ -116,9 +113,6 @@ namespace SolutionOrdersReact.Server.Controllers
             return Ok();
         }
 
-        // =====================================================
-        // GET /api/cart
-        // =====================================================
         [HttpGet]
         public async Task<IActionResult> GetCart(
             [FromQuery] int? userId,
@@ -146,9 +140,6 @@ namespace SolutionOrdersReact.Server.Controllers
             return Ok(items);
         }
 
-        // =====================================================
-        // PATCH /api/cart/{id}/quantity
-        // =====================================================
         [HttpPatch("{id:guid}/quantity")]
         public async Task<IActionResult> ChangeQuantity(
             Guid id,
@@ -197,9 +188,6 @@ namespace SolutionOrdersReact.Server.Controllers
             return NoContent();
         }
 
-        // =====================================================
-        // DELETE /api/cart/{id}
-        // =====================================================
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> RemoveItem(Guid id, CancellationToken ct)
         {
@@ -223,9 +211,6 @@ namespace SolutionOrdersReact.Server.Controllers
             return NoContent();
         }
 
-        // =====================================================
-        // DELETE /api/cart/clear
-        // =====================================================
         [HttpDelete("clear")]
         public async Task<IActionResult> ClearCart(
             [FromQuery] int? userId,

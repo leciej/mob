@@ -19,10 +19,10 @@ namespace SolutionOrdersReact.Server.Controllers
             _logger = logger;
         }
 
-        /// <summary>
-        /// Pobiera wszystkie aktywne jednostki miary
-        /// </summary>
-        /// <returns>Lista jednostek miary</returns>
+        
+        
+        
+        
         [HttpGet]
         [ProducesResponseType(typeof(List<UnitOfMeasurementDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll()
@@ -35,11 +35,11 @@ namespace SolutionOrdersReact.Server.Controllers
             return Ok(result);
         }
 
-        /// <summary>
-        /// Pobiera jednostkę miary po ID
-        /// </summary>
-        /// <param name="id">ID jednostki miary</param>
-        /// <returns>Jednostka miary</returns>
+        
+        
+        
+        
+        
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(UnitOfMeasurementDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -58,11 +58,11 @@ namespace SolutionOrdersReact.Server.Controllers
             return Ok(result);
         }
 
-        /// <summary>
-        /// Tworzy nową jednostkę miary
-        /// </summary>
-        /// <param name="command">Dane nowej jednostki miary</param>
-        /// <returns>ID utworzonej jednostki miary</returns>
+        
+        
+        
+        
+        
         [HttpPost]
         [ProducesResponseType(typeof(int), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -79,12 +79,12 @@ namespace SolutionOrdersReact.Server.Controllers
             );
         }
 
-        /// <summary>
-        /// Aktualizuje jednostkę miary
-        /// </summary>
-        /// <param name="id">ID jednostki miary</param>
-        /// <param name="command">Zaktualizowane dane jednostki miary</param>
-        /// <returns>Status operacji</returns>
+        
+        
+        
+        
+        
+        
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -109,11 +109,11 @@ namespace SolutionOrdersReact.Server.Controllers
             }
         }
 
-        /// <summary>
-        /// Usuwa jednostkę miary (soft delete)
-        /// </summary>
-        /// <param name="id">ID jednostki miary</param>
-        /// <returns>Status operacji</returns>
+        
+        
+        
+        
+        
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

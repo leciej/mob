@@ -14,7 +14,7 @@ namespace SolutionOrdersReact.Server.Handlers.Items
         {
             logger.LogInformation("Tworzenie nowego produktu: {Name}", request.Name);
 
-            // Mapowanie Command → Entity
+            
             var item = new Item
             {
                 Name = request.Name,
@@ -25,18 +25,18 @@ namespace SolutionOrdersReact.Server.Handlers.Items
                 FotoUrl = request.FotoUrl,
                 IdUnitOfMeasurement = request.IdUnitOfMeasurement,
                 Code = request.Code,
-                IsActive = true  // Domyślnie aktywny
+                IsActive = true  
             };
 
-            // Dodanie do DbContext
+            
             context.Items.Add(item);
 
-            // Zapisanie do bazy
+            
             await context.SaveChangesAsync(cancellationToken);
 
             logger.LogInformation("Utworzono produkt ID: {IdItem}", item.IdItem);
 
-            // Zwracamy ID
+            
             return item.IdItem;
         }
     }

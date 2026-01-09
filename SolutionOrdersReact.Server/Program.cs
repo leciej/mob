@@ -14,33 +14,33 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        // Controllers
+        
         builder.Services.AddControllers();
 
-        // DbContext
+        
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(
                 builder.Configuration.GetConnectionString("DefaultConnection")
             )
         );
 
-        // Mapster
+        
         TypeAdapterConfig.GlobalSettings.Scan(
             Assembly.GetExecutingAssembly()
         );
 
-        // MediatR
+        
         builder.Services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssemblyContaining<Program>()
         );
 
-        // ✅ HttpContext (WYMAGANE dla ActivityLog)
+        
         builder.Services.AddHttpContextAccessor();
 
-        // ✅ Activity Log Service
+        
         builder.Services.AddScoped<IActivityLogService, ActivityLogService>();
 
-        // CORS
+        
         builder.Services.AddCors(options =>
         {
             options.AddPolicy(
@@ -52,15 +52,15 @@ public class Program
             );
         });
 
-        // Swagger
+        
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
 
         var app = builder.Build();
 
-        // =========================
-        // MIGRACJE + SEED ADMINA
-        // =========================
+        
+        
+        
         using (var scope = app.Services.CreateScope())
         {
             var db = scope.ServiceProvider
@@ -70,14 +70,14 @@ public class Program
             {
                 db.Database.Migrate();
 
-                // ADMIN MUSI ISTNIEĆ I MIEĆ ID = 1
+                
                 var admin = db.Users.FirstOrDefault(u => u.Id == 1);
 
                 if (admin == null)
                 {
                     admin = new User
                     {
-                        Id = 1, // ⬅️ WYMUSZONE
+                        Id = 1, 
                         Name = "Admin",
                         Surname = "System",
                         Login = "admin",
@@ -91,7 +91,7 @@ public class Program
                 }
                 else if (admin.Role != "ADMIN")
                 {
-                    // ZABEZPIECZENIE: ID=1 ZAWSZE ADMIN
+                    
                     admin.Role = "ADMIN";
                     db.SaveChanges();
                 }

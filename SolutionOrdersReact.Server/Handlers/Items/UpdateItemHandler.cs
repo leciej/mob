@@ -22,7 +22,7 @@ namespace SolutionOrdersReact.Server.Handlers.Items
             UpdateItemCommand request,
             CancellationToken cancellationToken)
         {
-            // Znajdź rekord
+            
             var item = await _context.Items
                 .FirstOrDefaultAsync(i => i.IdItem == request.IdItem, cancellationToken);
 
@@ -33,7 +33,7 @@ namespace SolutionOrdersReact.Server.Handlers.Items
 
             _logger.LogInformation("Aktualizacja produktu ID: {IdItem}", request.IdItem);
 
-            // Aktualizacja pól
+            
             item.Name = request.Name;
             item.Description = request.Description;
             item.IdCategory = request.IdCategory;
@@ -44,12 +44,12 @@ namespace SolutionOrdersReact.Server.Handlers.Items
             item.Code = request.Code;
             item.IsActive = request.IsActive;
 
-            // Zapis
+            
             await _context.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation("Zaktualizowano produkt ID: {IdItem}", request.IdItem);
 
-            return Unit.Value;  // MediatR Unit = void
+            return Unit.Value;  
         }
     }
 }

@@ -8,7 +8,7 @@ namespace SolutionOrdersReact.Server.Mappings
     {
         public static void Configure()
         {
-            // Category -> CategoryDto
+            
             TypeAdapterConfig<Category, CategoryDto>
                 .NewConfig()
                 .Map(dest => dest.IdCategory, src => src.IdCategory)
@@ -16,7 +16,7 @@ namespace SolutionOrdersReact.Server.Mappings
                 .Map(dest => dest.Description, src => src.Description)
                 .Map(dest => dest.IsActive, src => src.IsActive);
 
-            // CategoryDto -> Category
+            
             TypeAdapterConfig<CategoryDto, Category>
                 .NewConfig()
                 .Map(dest => dest.IdCategory, src => src.IdCategory)

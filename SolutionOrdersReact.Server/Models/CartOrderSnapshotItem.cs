@@ -9,10 +9,10 @@ namespace SolutionOrdersReact.Server.Models
         public Guid CartOrderSnapshotId { get; set; }
         public CartOrderSnapshot CartOrderSnapshot { get; set; } = null!;
 
-        // PRODUCT / GALLERY
+        
         public string Source { get; set; } = null!;
 
-        // Id produktu / gallery
+        
         public Guid TargetId { get; set; }
 
         public string Name { get; set; } = null!;

@@ -9,7 +9,7 @@ namespace SolutionOrdersReact.Server.Models
         public Guid GalleryItemId { get; set; }
         public GalleryItem GalleryItem { get; set; } = null!;
 
-        // ⬅️ MUSI BYĆ NULLABLE (stockowe oceny)
+        
         public int? UserId { get; set; }
         public User? User { get; set; }
 

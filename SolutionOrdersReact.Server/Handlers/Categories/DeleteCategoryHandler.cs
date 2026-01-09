@@ -33,7 +33,7 @@ namespace SolutionOrdersReact.Server.Handlers.Categories
                 throw new KeyNotFoundException($"Kategoria o ID {request.IdCategory} nie istnieje");
             }
 
-            // Soft delete - tylko ustawiamy IsActive = false
+            
             category.IsActive = false;
             await _context.SaveChangesAsync(cancellationToken);
 

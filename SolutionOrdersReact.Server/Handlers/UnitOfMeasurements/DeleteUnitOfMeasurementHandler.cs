@@ -33,7 +33,7 @@ namespace SolutionOrdersReact.Server.Handlers.UnitOfMeasurements
                 throw new KeyNotFoundException($"Jednostka miary o ID {request.IdUnitOfMeasurement} nie istnieje");
             }
 
-            // Soft delete - tylko ustawiamy IsActive = false
+            
             unit.IsActive = false;
             await _context.SaveChangesAsync(cancellationToken);
 

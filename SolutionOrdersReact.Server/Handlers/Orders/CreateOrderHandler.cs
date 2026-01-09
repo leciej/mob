@@ -27,10 +27,10 @@ public class CreateOrderHandler
         {
             order.Items.Add(new OrderItem
             {
-                // powiązanie
+                
                 Order = order,
 
-                // uproszczony zapis pozycji zamówienia
+                
                 Source = item.Source,
                 SourceItemId = item.SourceItemId,
                 Name = item.Name,

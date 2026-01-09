@@ -5,10 +5,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace SolutionOrdersReact.Server.Migrations
 {
-    /// <inheritdoc />
+    
     public partial class AddCartSummary : Migration
     {
-        /// <inheritdoc />
+        
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropIndex(
@@ -142,7 +142,7 @@ namespace SolutionOrdersReact.Server.Migrations
                 column: "UserId");
         }
 
-        /// <inheritdoc />
+        
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(

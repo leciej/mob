@@ -33,14 +33,14 @@ public sealed class DeleteProductHandler
         if (product is null)
             return false;
 
-        // zachowujemy info do loga PRZED usunięciem
+        
         var productName = product.Name;
         var productId = product.Id.ToString();
 
         _db.Products.Remove(product);
         await _db.SaveChangesAsync(cancellationToken);
 
-        // ✅ ACTIVITY LOG: ProductDeleted
+        
         await _activityLog.LogAsync(
             ActivityEventType.ProductDeleted,
             userId: request.ActorUserId,

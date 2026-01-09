@@ -16,9 +16,9 @@ namespace SolutionOrdersReact.Server.Controllers
             _db = db;
         }
 
-        // =========================
-        // LOGIN AS GUEST
-        // =========================
+        
+        
+        
         [HttpPost("guest")]
         public async Task<ActionResult<UserDto>> GuestLogin()
         {
@@ -38,9 +38,9 @@ namespace SolutionOrdersReact.Server.Controllers
             return Ok(Map(guest));
         }
 
-        // =========================
-        // LOGIN USER / ADMIN
-        // =========================
+        
+        
+        
         [HttpPost("login")]
         public async Task<ActionResult<UserDto>> Login(LoginUserRequestDto request)
         {
@@ -58,9 +58,9 @@ namespace SolutionOrdersReact.Server.Controllers
             return Ok(Map(user));
         }
 
-        // =========================
-        // REGISTER
-        // =========================
+        
+        
+        
         [HttpPost("register")]
         public async Task<ActionResult<UserDto>> Register(RegisterUserRequestDto request)
         {
@@ -87,9 +87,9 @@ namespace SolutionOrdersReact.Server.Controllers
             return Ok(Map(user));
         }
 
-        // =========================
-        // USER STATS  <<< TO JEST KLUCZ
-        // =========================
+        
+        
+        
         [HttpGet("{userId:int}/stats")]
         public async Task<ActionResult<UserStatsDto>> GetUserStats(int userId)
         {

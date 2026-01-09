@@ -15,10 +15,10 @@ namespace SolutionOrdersReact.Server.Controllers
             _db = db;
         }
 
-        // =========================
-        // PLATFORM STATS (CARDS)
-        // =========================
-        // GET /api/stats/platform
+        
+        
+        
+        
         [HttpGet("platform")]
         public async Task<ActionResult<PlatformStatsDto>> GetPlatformStats()
         {
@@ -54,10 +54,10 @@ namespace SolutionOrdersReact.Server.Controllers
             });
         }
 
-        // =========================
-        // ORDERS + REVENUE (CHART)
-        // =========================
-        // GET /api/stats/orders-last-7-days
+        
+        
+        
+        
         [HttpGet("orders-last-7-days")]
         public async Task<ActionResult<OrdersChartDto>> GetOrdersLast7Days()
         {
@@ -106,9 +106,9 @@ namespace SolutionOrdersReact.Server.Controllers
         }
     }
 
-    // =========================
-    // DTOs
-    // =========================
+    
+    
+    
 
     public class PlatformStatsDto
     {

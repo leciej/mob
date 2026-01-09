@@ -5,10 +5,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace SolutionOrdersReact.Server.Migrations
 {
-    /// <inheritdoc />
+    
     public partial class AddActivityLog : Migration
     {
-        /// <inheritdoc />
+        
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropIndex(
@@ -74,7 +74,7 @@ namespace SolutionOrdersReact.Server.Migrations
                 columns: new[] { "UserId", "CreatedAt" });
         }
 
-        /// <inheritdoc />
+        
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(

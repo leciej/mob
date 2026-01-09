@@ -8,7 +8,7 @@ namespace SolutionOrdersReact.Server.Models
 
         public Guid ProductId { get; set; }
 
-        // ⬇️ POWIĄZANIE Z UŻYTKOWNIKIEM
+        
         public int UserId { get; set; }
         public User User { get; set; } = null!;
 

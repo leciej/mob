@@ -49,7 +49,7 @@ public sealed class UpdateProductHandler
 
         await _db.SaveChangesAsync(cancellationToken);
 
-        // ✅ ACTIVITY LOG: ProductUpdated
+        
         await _activityLog.LogAsync(
             ActivityEventType.ProductUpdated,
             userId: request.ActorUserId,

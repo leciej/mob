@@ -13,7 +13,7 @@
         public string? Code { get; set; }
         public bool IsActive { get; set; }
 
-        // Navigation properties
+        
         public virtual Category Category { get; set; } = null!;
         public virtual UnitOfMeasurement? UnitOfMeasurement { get; set; }
         public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();

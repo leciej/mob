@@ -2,7 +2,7 @@
 
 namespace SolutionOrdersReact.Server.Requests.Items.Commands
 {
-    public class UpdateItemCommand : IRequest<Unit>  // Unit = void
+    public class UpdateItemCommand : IRequest<Unit>  
     {
         public int IdItem { get; set; }
         public string? Name { get; set; }

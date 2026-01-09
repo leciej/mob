@@ -19,10 +19,6 @@ namespace SolutionOrdersReact.Server.Controllers
             _logger = logger;
         }
 
-        /// <summary>
-        /// Pobiera wszystkie aktywne kategorie
-        /// </summary>
-        /// <returns>Lista kategorii</returns>
         [HttpGet]
         [ProducesResponseType(typeof(List<CategoryDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll()
@@ -35,11 +31,6 @@ namespace SolutionOrdersReact.Server.Controllers
             return Ok(result);
         }
 
-        /// <summary>
-        /// Pobiera kategorię po ID
-        /// </summary>
-        /// <param name="id">ID kategorii</param>
-        /// <returns>Kategoria</returns>
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(CategoryDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -58,11 +49,6 @@ namespace SolutionOrdersReact.Server.Controllers
             return Ok(result);
         }
 
-        /// <summary>
-        /// Tworzy nową kategorię
-        /// </summary>
-        /// <param name="command">Dane nowej kategorii</param>
-        /// <returns>ID utworzonej kategorii</returns>
         [HttpPost]
         [ProducesResponseType(typeof(int), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -79,12 +65,6 @@ namespace SolutionOrdersReact.Server.Controllers
             );
         }
 
-        /// <summary>
-        /// Aktualizuje kategorię
-        /// </summary>
-        /// <param name="id">ID kategorii</param>
-        /// <param name="command">Zaktualizowane dane kategorii</param>
-        /// <returns>Status operacji</returns>
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -109,11 +89,6 @@ namespace SolutionOrdersReact.Server.Controllers
             }
         }
 
-        /// <summary>
-        /// Usuwa kategorię (soft delete)
-        /// </summary>
-        /// <param name="id">ID kategorii</param>
-        /// <returns>Status operacji</returns>
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -135,4 +110,3 @@ namespace SolutionOrdersReact.Server.Controllers
         }
     }
 }
-

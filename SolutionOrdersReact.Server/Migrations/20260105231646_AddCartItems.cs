@@ -5,10 +5,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace SolutionOrdersReact.Server.Migrations
 {
-    /// <inheritdoc />
+    
     public partial class AddCartItems : Migration
     {
-        /// <inheritdoc />
+        
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DeleteData(
@@ -46,7 +46,7 @@ namespace SolutionOrdersReact.Server.Migrations
                 columns: new[] { "UserId", "TargetType", "TargetId" });
         }
 
-        /// <inheritdoc />
+        
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(

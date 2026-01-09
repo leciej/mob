@@ -26,7 +26,7 @@ namespace SolutionOrdersReact.Server.Models
 
         public DbSet<CartItem> CartItems { get; set; }
 
-        // 🆕 SNAPSHOT ZAMÓWIENIA
+        
         public DbSet<CartOrderSnapshot> CartOrderSnapshots { get; set; }
         public DbSet<CartOrderSnapshotItem> CartOrderSnapshotItems { get; set; }
 
@@ -180,9 +180,9 @@ namespace SolutionOrdersReact.Server.Models
                 entity.HasIndex(e => new { e.UserId, e.TargetType, e.TargetId });
             });
 
-            // =========================
-            // 🆕 CART ORDER SNAPSHOT
-            // =========================
+            
+            
+            
             modelBuilder.Entity<CartOrderSnapshot>(entity =>
             {
                 entity.HasKey(e => e.Id);

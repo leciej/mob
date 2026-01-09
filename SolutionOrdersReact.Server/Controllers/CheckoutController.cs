@@ -20,10 +20,6 @@ namespace SolutionOrdersReact.Server.Controllers
             _activityLog = activityLog;
         }
 
-        // =====================================================
-        // POST /api/checkout
-        // body: { userId }
-        // =====================================================
         [HttpPost]
         public async Task<IActionResult> Checkout(
             [FromBody] CheckoutRequestDto request,

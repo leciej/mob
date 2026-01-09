@@ -21,7 +21,7 @@ namespace SolutionOrdersReact.Server.Handlers.Items
             var item = await _context.Items
                 .Include(i => i.Category)
                 .Include(i => i.UnitOfMeasurement)
-                .Where(i => i.IdItem == request.Id)    // Filtr po Id
+                .Where(i => i.IdItem == request.Id)    
                 .Select(i => new ItemDto
                 {
                     IdItem = i.IdItem,
@@ -36,7 +36,7 @@ namespace SolutionOrdersReact.Server.Handlers.Items
                     Code = i.Code,
                     IsActive = i.IsActive
                 })
-                .FirstOrDefaultAsync(cancellationToken);  // Pierwszy lub null
+                .FirstOrDefaultAsync(cancellationToken);  
 
             return item;
         }

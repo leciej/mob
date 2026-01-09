@@ -39,7 +39,7 @@ namespace SolutionOrdersReact.Server.Services.ActivityLog
         {
             var http = _httpContextAccessor.HttpContext;
 
-            // 🔽 FALLBACK: spróbuj ustalić użytkownika (ADMIN) z HttpContext
+            
             if (userId == null)
             {
                 userId = TryResolveUserIdFromHttpContext(http);
@@ -80,7 +80,7 @@ namespace SolutionOrdersReact.Server.Services.ActivityLog
             if (http == null)
                 return null;
 
-            // 1️⃣ JWT / Claims (docelowe)
+            
             var claim =
                 http.User?.FindFirst(ClaimTypes.NameIdentifier)
                 ?? http.User?.FindFirst("sub");
@@ -88,7 +88,7 @@ namespace SolutionOrdersReact.Server.Services.ActivityLog
             if (claim != null && int.TryParse(claim.Value, out var id))
                 return id;
 
-            // 2️⃣ Tymczasowy fallback (np. panel admina bez auth)
+            
             if (http.Request.Headers.TryGetValue("X-Admin-Id", out var header)
                 && int.TryParse(header.FirstOrDefault(), out var adminId))
             {

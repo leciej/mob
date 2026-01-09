@@ -10,7 +10,7 @@ namespace SolutionOrdersReact.Server.Controllers
     [ApiController]
     public class ItemsController(IMediator mediator) : ControllerBase
     {
-        // GET: api/items
+        
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -19,9 +19,9 @@ namespace SolutionOrdersReact.Server.Controllers
             return Ok(result);
         }
 
-        /// <summary>
-        /// Tworzy nowy produkt
-        /// </summary>
+        
+        
+        
         [HttpPost]
         [ProducesResponseType(typeof(int), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -29,7 +29,7 @@ namespace SolutionOrdersReact.Server.Controllers
         {
             var itemId = await mediator.Send(command);
 
-            // HTTP 201 Created z Location header
+            
             return CreatedAtAction(
                 nameof(GetById),
                 new { id = itemId },
@@ -37,9 +37,9 @@ namespace SolutionOrdersReact.Server.Controllers
             );
         }
 
-        /// <summary>
-        /// Pobiera produkt po ID
-        /// </summary>
+        
+        
+        
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(ItemDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -55,9 +55,9 @@ namespace SolutionOrdersReact.Server.Controllers
 
             return Ok(result);
         }
-        /// <summary>
-         /// Aktualizuje produkt
-         /// </summary>
+        
+         
+         
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -71,16 +71,16 @@ namespace SolutionOrdersReact.Server.Controllers
             try
             {
                 await mediator.Send(command);
-                return NoContent();  // HTTP 204 - sukces bez body
+                return NoContent();  
             }
             catch (KeyNotFoundException ex)
             {
                 return NotFound(new { message = ex.Message });
             }
         }
-        /// <summary>
-        /// Usuwa produkt (soft delete)
-        /// </summary>
+        
+        
+        
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

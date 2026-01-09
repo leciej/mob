@@ -30,7 +30,7 @@ public sealed class ProductController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<ProductDto>> Create(
         [FromBody] CreateProductRequestDto payload,
-        [FromQuery] int? actorUserId // ✅ admin id
+        [FromQuery] int? actorUserId 
     )
     {
         var result = await _mediator.Send(
@@ -43,7 +43,7 @@ public sealed class ProductController : ControllerBase
     public async Task<IActionResult> Update(
         string id,
         [FromBody] UpdateProductRequestDto payload,
-        [FromQuery] int? actorUserId // ✅ admin id
+        [FromQuery] int? actorUserId 
     )
     {
         var success = await _mediator.Send(
@@ -55,7 +55,7 @@ public sealed class ProductController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Remove(
         string id,
-        [FromQuery] int? actorUserId // ✅ admin id
+        [FromQuery] int? actorUserId 
     )
     {
         var success = await _mediator.Send(

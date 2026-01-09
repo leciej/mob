@@ -16,13 +16,6 @@ namespace SolutionOrdersReact.Server.Controllers
             _context = context;
         }
 
-        // GET /api/activity
-        // ?viewerUserId=1
-        // &userId=1
-        // &eventType=CommentAdded
-        // &targetType=Product
-        // &targetId=GUID
-        // &page=1&pageSize=20
         [HttpGet]
         public async Task<ActionResult<PagedResultDto<ActivityLogDto>>> GetActivity(
             [FromQuery] int viewerUserId,
@@ -46,7 +39,6 @@ namespace SolutionOrdersReact.Server.Controllers
 
             var isAdmin = viewer.Role == "ADMIN";
 
-            // USER widzi tylko swoje
             if (!isAdmin)
             {
                 if (!userId.HasValue || userId.Value != viewerUserId)
@@ -82,13 +74,10 @@ namespace SolutionOrdersReact.Server.Controllers
                     Id = a.Id.ToString(),
                     EventType = a.EventType.ToString(),
                     CreatedAt = a.CreatedAt.ToString("O"),
-
                     UserId = a.UserId,
                     UserLogin = a.User != null ? a.User.Login : null,
-
                     TargetType = a.TargetType,
                     TargetId = a.TargetId,
-
                     Message = a.Message,
                     DataJson = a.DataJson
                 })

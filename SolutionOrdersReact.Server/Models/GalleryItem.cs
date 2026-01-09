@@ -6,7 +6,7 @@ namespace SolutionOrdersReact.Server.Models
     public class GalleryItem
     {
         [Key]
-        public Guid Id { get; set; }   // ✅ MUSI BYĆ Guid
+        public Guid Id { get; set; }   
 
         [Required]
         [MaxLength(200)]

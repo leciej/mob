@@ -13,13 +13,13 @@ namespace SolutionOrdersReact.Server.Handlers.Items
             GetAllItemsQuery request,
             CancellationToken cancellationToken)
         {
-            // Query do bazy z Include (EAGER LOADING)
+            
             var items = await _context.Items
-                .Include(i => i.Category)              // JOIN z Category
-                .Include(i => i.UnitOfMeasurement)     // JOIN z UnitOfMeasurement
-                .Where(i => i.IsActive)                // Tylko aktywne
-                .OrderBy(i => i.Name)                  // Sortowanie
-                .Select(i => new ItemDto               // Projekcja do DTO
+                .Include(i => i.Category)              
+                .Include(i => i.UnitOfMeasurement)     
+                .Where(i => i.IsActive)                
+                .OrderBy(i => i.Name)                  
+                .Select(i => new ItemDto               
                 {
                     IdItem = i.IdItem,
                     Name = i.Name,

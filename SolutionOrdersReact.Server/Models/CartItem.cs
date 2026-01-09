@@ -6,9 +6,9 @@ namespace SolutionOrdersReact.Server.Models
     {
         public Guid Id { get; set; }
 
-        public int? UserId { get; set; } // null = guest
+        public int? UserId { get; set; } 
 
-        public string TargetType { get; set; } = null!; // "Product" | "GalleryItem"
+        public string TargetType { get; set; } = null!; 
         public Guid TargetId { get; set; }
 
         public string Name { get; set; } = null!;

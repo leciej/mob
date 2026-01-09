@@ -15,6 +15,9 @@ namespace SolutionOrdersReact.Server.Controllers
             _db = db;
         }
 
+        // =========================
+        // PLATFORM STATS (CARDS)
+        // =========================
         // GET /api/stats/platform
         [HttpGet("platform")]
         public async Task<ActionResult<PlatformStatsDto>> GetPlatformStats()
@@ -38,7 +41,6 @@ namespace SolutionOrdersReact.Server.Controllers
 
             var commentsCount = await _db.Comments.CountAsync();
 
-            // ✅ TO BYŁO BRAKUJĄCE
             var activitiesCount = await _db.ActivityLogs.CountAsync();
 
             return Ok(new PlatformStatsDto
@@ -51,7 +53,62 @@ namespace SolutionOrdersReact.Server.Controllers
                 ActivitiesCount = activitiesCount
             });
         }
+
+        // =========================
+        // ORDERS + REVENUE (CHART)
+        // =========================
+        // GET /api/stats/orders-last-7-days
+        [HttpGet("orders-last-7-days")]
+        public async Task<ActionResult<OrdersChartDto>> GetOrdersLast7Days()
+        {
+            var today = DateTime.UtcNow.Date;
+
+            var days = Enumerable.Range(0, 7)
+                .Select(i => today.AddDays(-6 + i))
+                .ToList();
+
+            var ordersQuery = _db.Orders
+                .Include(o => o.Items)
+                .Where(o => o.CreatedAt >= days.First());
+
+            var grouped = await ordersQuery
+                .GroupBy(o => o.CreatedAt.Date)
+                .Select(g => new
+                {
+                    Day = g.Key,
+                    Orders = g.Count(),
+                    Revenue = g.Sum(o =>
+                        o.Items.Sum(i => i.Price * i.Quantity)
+                    )
+                })
+                .ToListAsync();
+
+            var result = new OrdersChartDto
+            {
+                Days = days
+                    .Select(d => d.ToString("dd.MM"))
+                    .ToList(),
+
+                Orders = days
+                    .Select(d =>
+                        grouped.FirstOrDefault(g => g.Day == d)?.Orders ?? 0
+                    )
+                    .ToList(),
+
+                Revenue = days
+                    .Select(d =>
+                        grouped.FirstOrDefault(g => g.Day == d)?.Revenue ?? 0
+                    )
+                    .ToList()
+            };
+
+            return Ok(result);
+        }
     }
+
+    // =========================
+    // DTOs
+    // =========================
 
     public class PlatformStatsDto
     {
@@ -60,8 +117,13 @@ namespace SolutionOrdersReact.Server.Controllers
         public int RatedCount { get; set; }
         public double AverageRating { get; set; }
         public int CommentsCount { get; set; }
-
-        // ✅ NOWE POLE
         public int ActivitiesCount { get; set; }
+    }
+
+    public class OrdersChartDto
+    {
+        public List<string> Days { get; set; } = [];
+        public List<int> Orders { get; set; } = [];
+        public List<decimal> Revenue { get; set; } = [];
     }
 }
